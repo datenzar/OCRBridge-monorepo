@@ -2,14 +2,25 @@
 
 import tempfile
 from pathlib import Path
+from typing import Any, Mapping, Sequence, cast
 
 import numpy as np
-from ocrbridge.core import OCREngine, OCRProcessingError, UnsupportedFormatError
-from ocrbridge.core.utils import easyocr_to_hocr
-from pdf2image import convert_from_path
+import pdf2image as _pdf2image
 from PIL import Image
 
+from ocrbridge.core import OCREngine, OCRProcessingError, UnsupportedFormatError
+from ocrbridge.core.models import OCREngineParams
+from ocrbridge.core.utils import easyocr_to_hocr
+
 from .models import EasyOCRParams
+
+pdf2image = cast(Any, _pdf2image)
+
+EasyOCRReader = Any
+Point = tuple[float, float]
+BoundingBox = Sequence[Point]
+EasyOCRResult = tuple[BoundingBox, str, float]
+EasyOCRResults = list[EasyOCRResult]
 
 
 def detect_gpu_availability() -> bool:
@@ -53,7 +64,7 @@ class EasyOCREngine(OCREngine):
 
     def __init__(self):
         """Initialize EasyOCR engine."""
-        self.reader = None
+        self.reader: EasyOCRReader | None = None
         self._current_languages: list[str] | None = None
 
     @property
@@ -66,7 +77,23 @@ class EasyOCREngine(OCREngine):
         """Return supported file extensions."""
         return {".jpg", ".jpeg", ".png", ".pdf", ".tiff", ".tif"}
 
-    def _create_reader(self, languages: list[str]):
+    def _coerce_params(self, params: OCREngineParams | None) -> EasyOCRParams:
+        """Ensure params are EasyOCR-compatible."""
+        if params is None:
+            return EasyOCRParams()
+
+        if isinstance(params, EasyOCRParams):
+            return params
+
+        if hasattr(params, "model_dump"):
+            data = getattr(params, "model_dump")()
+            if isinstance(data, Mapping):
+                typed_data = cast("Mapping[str, Any]", data)
+                return EasyOCRParams(**dict(typed_data))
+
+        raise OCRProcessingError("EasyOCR engine requires EasyOCRParams")
+
+    def _create_reader(self, languages: list[str]) -> EasyOCRReader:
         """Create EasyOCR Reader instance with specified configuration.
 
         Args:
@@ -86,14 +113,14 @@ class EasyOCREngine(OCREngine):
         use_gpu, _ = get_easyocr_device()
 
         # Create reader with language list and GPU setting
-        reader = easyocr.Reader(
+        reader: EasyOCRReader = easyocr.Reader(
             lang_list=languages,
             gpu=use_gpu,
         )
 
         return reader
 
-    def process(self, file_path: Path, params: EasyOCRParams | None = None) -> str:
+    def process(self, file_path: Path, params: OCREngineParams | None = None) -> str:
         """Process document with EasyOCR and return HOCR XML.
 
         Args:
@@ -107,9 +134,7 @@ class EasyOCREngine(OCREngine):
             OCRProcessingError: If EasyOCR processing fails
             UnsupportedFormatError: If file format not supported
         """
-        # Use defaults if no params provided
-        if params is None:
-            params = EasyOCRParams()
+        easyocr_params = self._coerce_params(params)
 
         # Validate file exists
         if not file_path.exists():
@@ -124,16 +149,16 @@ class EasyOCREngine(OCREngine):
             )
 
         # Create or recreate reader if languages changed
-        if self.reader is None or self._current_languages != params.languages:
-            self.reader = self._create_reader(params.languages)
-            self._current_languages = params.languages
+        if self.reader is None or self._current_languages != easyocr_params.languages:
+            self.reader = self._create_reader(easyocr_params.languages)
+            self._current_languages = easyocr_params.languages
 
         try:
             # Handle PDF separately
             if suffix == ".pdf":
-                return self._process_pdf(file_path, params)
+                return self._process_pdf(file_path, easyocr_params)
             else:
-                return self._process_image(file_path, params)
+                return self._process_image(file_path, easyocr_params)
 
         except Exception as e:
             raise OCRProcessingError(f"EasyOCR processing failed: {e}") from e
@@ -148,11 +173,17 @@ class EasyOCREngine(OCREngine):
         Returns:
             HOCR XML string
         """
+        if self.reader is None:
+            raise OCRProcessingError("EasyOCR reader is not initialized")
+
         # Process image with EasyOCR
-        results = self.reader.readtext(  # type: ignore
-            str(image_path),
-            detail=1,  # Include bounding boxes and confidence
-            paragraph=False,  # Return individual text boxes
+        results = cast(
+            EasyOCRResults,
+            self.reader.readtext(
+                str(image_path),
+                detail=1,  # Include bounding boxes and confidence
+                paragraph=False,  # Return individual text boxes
+            ),
         )
 
         # Convert results to HOCR format
@@ -172,21 +203,30 @@ class EasyOCREngine(OCREngine):
         """
         # Convert PDF to images
         try:
-            images = convert_from_path(str(pdf_path), dpi=300, thread_count=2)
+            images = cast(
+                list[Image.Image],
+                pdf2image.convert_from_path(str(pdf_path), dpi=300, thread_count=2),
+            )
         except Exception as e:
             raise OCRProcessingError(f"PDF conversion failed: {str(e)}")
 
         # Process each page
-        page_hocr_list = []
+        if self.reader is None:
+            raise OCRProcessingError("EasyOCR reader is not initialized")
+
+        page_hocr_list: list[str] = []
         for image in images:
             # Convert PIL Image to numpy array for EasyOCR
             img_array = np.array(image)
 
             # Run EasyOCR on page image
-            results = self.reader.readtext(  # type: ignore
-                img_array,
-                detail=1,
-                paragraph=False,
+            results = cast(
+                EasyOCRResults,
+                self.reader.readtext(
+                    img_array,
+                    detail=1,
+                    paragraph=False,
+                ),
             )
 
             # Convert results to HOCR for this page
@@ -204,7 +244,7 @@ class EasyOCREngine(OCREngine):
 
         # Merge all pages into single HOCR document
         if len(page_hocr_list) == 1:
-            hocr_content = page_hocr_list[0]
+            hocr_content: str = page_hocr_list[0]
         else:
             hocr_content = self._merge_hocr_pages(page_hocr_list)
 
@@ -241,7 +281,7 @@ class EasyOCREngine(OCREngine):
 
         return hocr_template
 
-    def _to_hocr(self, easyocr_results: list, image_path: Path) -> str:
+    def _to_hocr(self, easyocr_results: EasyOCRResults, image_path: Path) -> str:
         """Convert EasyOCR results to HOCR XML format.
 
         Args:

@@ -17,11 +17,14 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.4.0",
-    "pytest-cov>=4.1.0",
+    "pytest~=8.0",
+    "pytest-cov>=7.0.0",
+    "pytest-mock>=3.12.0",
     "ruff>=0.1.0",
     "pyright>=1.1.0",
+    "python-semantic-release>=10.5.2",
 ]
+test = ["pytest~=8.0"]
 
 # Entry point for engine discovery
 [project.entry-points."ocrbridge.engines"]
@@ -44,4 +47,37 @@ ignore = []
 
 [tool.pyright]
 typeCheckingMode = "strict"
-pythonVersion = "3.11"
+pythonVersion = "3.10"
+include = ["src"]
+exclude = ["tests"]
+extraPaths = ["typings"]
+reportMissingTypeStubs = "none"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+    "integration: marks tests as integration tests requiring Tesseract binary",
+    "slow: marks tests as slow running",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/tests/*", "*/__pycache__/*", "*/.venv/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
+
+[tool.semantic_release]
+build_command = """
+    uv lock --upgrade-package "$PACKAGE_NAME"
+    git add uv.lock
+    uv build
+"""
+version_toml = ["pyproject.toml:project.version"]

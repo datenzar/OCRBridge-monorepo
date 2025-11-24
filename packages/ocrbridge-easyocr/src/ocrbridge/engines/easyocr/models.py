@@ -1,22 +1,92 @@
 """EasyOCR engine parameter models."""
 
-from ocrbridge.core.models import OCREngineParams
 from pydantic import Field, field_validator
+
+from ocrbridge.core.models import OCREngineParams
 
 # EasyOCR supported languages (80+ languages)
 EASYOCR_SUPPORTED_LANGUAGES = {
     # Latin scripts
-    "en", "fr", "de", "es", "pt", "it", "nl", "pl", "ru", "tr",
-    "sv", "cs", "da", "no", "fi", "ro", "hu", "sk", "hr", "sr",
-    "bg", "uk", "be", "lt", "lv", "et", "sl", "sq", "is", "ga",
-    "cy", "af", "ms", "id", "tl", "vi", "sw",
+    "en",
+    "fr",
+    "de",
+    "es",
+    "pt",
+    "it",
+    "nl",
+    "pl",
+    "ru",
+    "tr",
+    "sv",
+    "cs",
+    "da",
+    "no",
+    "fi",
+    "ro",
+    "hu",
+    "sk",
+    "hr",
+    "sr",
+    "bg",
+    "uk",
+    "be",
+    "lt",
+    "lv",
+    "et",
+    "sl",
+    "sq",
+    "is",
+    "ga",
+    "cy",
+    "af",
+    "ms",
+    "id",
+    "tl",
+    "vi",
+    "sw",
     # Asian scripts
-    "ch_sim", "ch_tra", "ja", "ko", "th", "hi", "bn", "ta", "te",
-    "kn", "ml", "mr", "ne", "si", "ur", "fa", "ar", "he", "my",
-    "km", "lo", "ka", "hy", "mn",
+    "ch_sim",
+    "ch_tra",
+    "ja",
+    "ko",
+    "th",
+    "hi",
+    "bn",
+    "ta",
+    "te",
+    "kn",
+    "ml",
+    "mr",
+    "ne",
+    "si",
+    "ur",
+    "fa",
+    "ar",
+    "he",
+    "my",
+    "km",
+    "lo",
+    "ka",
+    "hy",
+    "mn",
     # Additional
-    "az", "kk", "uz", "ky", "tg", "pa", "gu", "or", "as", "oc",
-    "eu", "ca", "gl", "mt", "la", "eo", "mi",
+    "az",
+    "kk",
+    "uz",
+    "ky",
+    "tg",
+    "pa",
+    "gu",
+    "or",
+    "as",
+    "oc",
+    "eu",
+    "ca",
+    "gl",
+    "mt",
+    "la",
+    "eo",
+    "mi",
 }
 
 
@@ -60,8 +130,11 @@ class EasyOCRParams(OCREngineParams):
 
         if invalid_langs:
             raise ValueError(
-                f"Unsupported EasyOCR language codes: {invalid_langs}. "
-                f"Use EasyOCR format (e.g., 'en', 'ch_sim', 'ja'), not Tesseract format ('eng', 'chi_sim')"
+                (
+                    f"Unsupported EasyOCR language codes: {invalid_langs}. "
+                    "Use EasyOCR format (e.g., 'en', 'ch_sim', 'ja'), "
+                    "not Tesseract format ('eng', 'chi_sim')"
+                )
             )
 
         return v
