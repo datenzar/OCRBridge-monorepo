@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+
 from ocrbridge.core import OCREngine, OCREngineParams
 
 
@@ -23,7 +24,7 @@ class MockEngine(OCREngine):
     def supported_formats(self) -> set[str]:
         return {".jpg", ".png", ".pdf"}
 
-    def process(self, file_path: Path, params: MockParams | None = None) -> str:
+    def process(self, file_path: Path, params: OCREngineParams | None = None) -> str:
         return '<html><body><div class="ocr_page">Mock HOCR</div></body></html>'
 
 
@@ -57,5 +58,6 @@ def test_engine_process_with_params():
 
 def test_params_extra_forbid():
     """Test that unknown parameters are rejected."""
+    params_data = {"test_param": "valid", "unknown_param": "invalid"}
     with pytest.raises(ValueError):
-        MockParams(test_param="valid", unknown_param="invalid")
+        MockParams(**params_data)

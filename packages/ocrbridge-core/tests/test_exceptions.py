@@ -1,6 +1,7 @@
 """Tests for OCR Bridge exceptions."""
 
 import pytest
+
 from ocrbridge.core import (
     EngineNotAvailableError,
     InvalidParametersError,

@@ -2,7 +2,7 @@
 
 import re
 import xml.etree.ElementTree as ET
-from typing import NamedTuple
+from typing import NamedTuple, Sequence, TypedDict
 
 
 class HOCRParseError(Exception):
@@ -62,7 +62,7 @@ def parse_hocr(hocr_content: str) -> HOCRInfo:
     has_bounding_boxes = "bbox" in hocr_content
 
     return HOCRInfo(
-        page_count=max(page_count, 1),  # At least 1 page
+        page_count=page_count,
         word_count=word_count,
         has_bounding_boxes=has_bounding_boxes,
     )
@@ -107,7 +107,28 @@ def extract_bbox(element_title: str) -> tuple[int, int, int, int] | None:
     return None
 
 
-def _group_easyocr_words_into_lines(easyocr_results: list) -> list[dict]:
+Point2D = tuple[float, float]
+BBox = tuple[int, int, int, int]
+
+
+class WordData(TypedDict):
+    text: str
+    confidence: float
+    bbox: BBox
+    y_center: float
+    height: float
+    x_min: int
+
+
+class LineData(TypedDict):
+    bbox: BBox
+    words: list[WordData]
+
+
+EasyOCRResult = tuple[Sequence[Point2D], str, float]
+
+
+def _group_easyocr_words_into_lines(easyocr_results: Sequence[EasyOCRResult]) -> list[LineData]:
     """
     Group EasyOCR word detections into lines based on vertical position.
 
@@ -123,7 +144,7 @@ def _group_easyocr_words_into_lines(easyocr_results: list) -> list[dict]:
         return []
 
     # Convert EasyOCR results to word dictionaries
-    words = []
+    words: list[WordData] = []
     for result in easyocr_results:
         # EasyOCR bbox format: [[x1,y1], [x2,y2], [x3,y3], [x4,y4]]
         bbox, text, confidence = result
@@ -153,7 +174,7 @@ def _group_easyocr_words_into_lines(easyocr_results: list) -> list[dict]:
         return []
 
     # Calculate median word height for threshold
-    heights = [w["height"] for w in words]
+    heights: list[float] = [w["height"] for w in words]
     heights.sort()
     median_height = heights[len(heights) // 2]
 
@@ -164,7 +185,7 @@ def _group_easyocr_words_into_lines(easyocr_results: list) -> list[dict]:
     words.sort(key=lambda w: w["y_center"])
 
     # Group words into lines
-    lines = []
+    lines: list[list[WordData]] = []
     current_line_words = [words[0]]
     current_y_center = words[0]["y_center"]
 
@@ -183,7 +204,7 @@ def _group_easyocr_words_into_lines(easyocr_results: list) -> list[dict]:
         lines.append(current_line_words)
 
     # Process each line: sort words left-to-right and calculate bbox
-    result_lines = []
+    result_lines: list[LineData] = []
     for line_words in lines:
         # Sort words left to right
         line_words.sort(key=lambda w: w["x_min"])
@@ -201,7 +222,9 @@ def _group_easyocr_words_into_lines(easyocr_results: list) -> list[dict]:
     return result_lines
 
 
-def easyocr_to_hocr(easyocr_results: list, image_width: int, image_height: int) -> str:
+def easyocr_to_hocr(
+    easyocr_results: Sequence[EasyOCRResult], image_width: int, image_height: int
+) -> str:
     """
     Convert EasyOCR results to HOCR XML format with hierarchical structure.
 
@@ -223,9 +246,9 @@ def easyocr_to_hocr(easyocr_results: list, image_width: int, image_height: int) 
         '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">',
         '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">',
         "<head>",
-        '  <meta http-equiv="content-type" content="text/html; charset=utf-8" />',
-        '  <meta name="ocr-system" content="easyocr" />',
-        '  <meta name="ocr-capabilities" content="ocr_page ocr_carea ocr_par ocr_line ocrx_word" />',
+        ' <meta http-equiv="content-type" content="text/html; charset=utf-8" />',
+        ' <meta name="ocr-system" content="easyocr" />',
+        ' <meta name="ocr-capabilities" content="ocr_page ocr_carea ocr_par ocr_line ocrx_word" />',
         "</head>",
         "<body>",
         f'  <div class="ocr_page" id="page_1" title="bbox 0 0 {image_width} {image_height}">',
@@ -264,7 +287,8 @@ def easyocr_to_hocr(easyocr_results: list, image_width: int, image_height: int) 
             word_bbox = word_data["bbox"]
             hocr_lines.append(
                 f'      <span class="ocrx_word" id="word_1_{word_counter}" '
-                f'title="bbox {word_bbox[0]} {word_bbox[1]} {word_bbox[2]} {word_bbox[3]}; x_wconf {conf_percent}">'
+                f'title="bbox {word_bbox[0]} {word_bbox[1]} {word_bbox[2]} '
+                f'{word_bbox[3]}; x_wconf {conf_percent}">'
                 f"{escaped_text}</span>"
             )
 

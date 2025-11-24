@@ -2,11 +2,8 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import TypeVar
 
 from .models import OCREngineParams
-
-T = TypeVar("T", bound=OCREngineParams)
 
 
 class OCREngine(ABC):
@@ -18,7 +15,7 @@ class OCREngine(ABC):
     """
 
     @abstractmethod
-    def process(self, file_path: Path, params: T | None = None) -> str:
+    def process(self, file_path: Path, params: OCREngineParams | None = None) -> str:
         """Process a document and return HOCR XML output.
 
         Args:

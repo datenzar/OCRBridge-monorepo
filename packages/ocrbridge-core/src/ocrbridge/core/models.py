@@ -1,6 +1,6 @@
 """Base models for OCR engine parameters."""
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class OCREngineParams(BaseModel):
@@ -15,5 +15,4 @@ class OCREngineParams(BaseModel):
             psm: int = Field(default=3, ge=0, le=13)
     """
 
-    class Config:
-        extra = "forbid"  # Reject unknown parameters to catch typos/errors
+    model_config = ConfigDict(extra="forbid")  # Reject unknown parameters to catch typos/errors

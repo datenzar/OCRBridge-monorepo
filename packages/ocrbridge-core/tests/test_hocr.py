@@ -1,6 +1,7 @@
 """Tests for HOCR utilities."""
 
 import pytest
+
 from ocrbridge.core.utils import (
     HOCRInfo,
     HOCRParseError,
@@ -9,7 +10,6 @@ from ocrbridge.core.utils import (
     parse_hocr,
     validate_hocr,
 )
-
 
 VALID_HOCR = """<?xml version="1.0" encoding="UTF-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml">
