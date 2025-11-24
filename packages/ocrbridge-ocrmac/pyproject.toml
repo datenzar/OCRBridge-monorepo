@@ -3,8 +3,8 @@ name = "ocrbridge-ocrmac"
 version = "0.1.0"
 description = "ocrmac (Apple Vision) OCR engine for OCR Bridge"
 readme = "README.md"
-requires-python = ">=3.11"
-license = {text = "MIT"}
+requires-python = ">=3.10"
+license = { text = "MIT" }
 
 dependencies = [
     "ocrbridge-core>=0.1.0",
@@ -15,10 +15,11 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.4.0",
-    "pytest-cov>=4.1.0",
+    "pytest~=8.0",
     "ruff>=0.1.0",
     "pyright>=1.1.0",
+    "pytest-cov>=7.0.0",
+    "python-semantic-release>=10.5.2",
 ]
 
 # Entry point for engine discovery
@@ -40,6 +41,20 @@ target-version = "py311"
 select = ["E", "F", "I", "N", "W"]
 ignore = []
 
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
 [tool.pyright]
 typeCheckingMode = "strict"
-pythonVersion = "3.11"
+pythonVersion = "3.10"
+reportMissingTypeStubs = false
+reportPrivateUsage = "none"
+
+[tool.semantic_release]
+build_command = """
+    uv lock --upgrade-package "$PACKAGE_NAME"
+    git add uv.lock
+    uv build
+"""
+version_toml = ["pyproject.toml:project.version"]

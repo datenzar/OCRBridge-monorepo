@@ -5,12 +5,21 @@ import platform
 import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import Sequence, Tuple
 
-from ocrbridge.core import OCREngine, OCRProcessingError, UnsupportedFormatError
-from pdf2image import convert_from_path
+from pdf2image import convert_from_path  # type: ignore[reportUnknownVariableType]
 from PIL import Image
 
-from .models import OcrmacParams, RecognitionLevel
+from ocrbridge.core import (  # type: ignore[reportMissingTypeStubs]
+    OCREngine,
+    OCREngineParams,
+    OCRProcessingError,
+    UnsupportedFormatError,
+)
+
+from .models import OcrmacParams, RecognitionLevel  # type: ignore[reportMissingTypeStubs]
+
+Annotation = tuple[str, float, Tuple[float, float, float, float]]
 
 
 class OcrmacEngine(OCREngine):
@@ -34,8 +43,7 @@ class OcrmacEngine(OCREngine):
         """Validate that we're running on macOS."""
         if platform.system() != "Darwin":
             raise OCRProcessingError(
-                "ocrmac is only available on macOS systems. "
-                f"Current platform: {platform.system()}"
+                f"ocrmac is only available on macOS systems. Current platform: {platform.system()}"
             )
 
     def _validate_livetext_requirement(self, recognition_level: RecognitionLevel) -> None:
@@ -53,14 +61,15 @@ class OcrmacEngine(OCREngine):
             major_version = int(mac_version.split(".")[0])
             if major_version < 14:
                 raise OCRProcessingError(
-                    f"LiveText requires macOS Sonoma (14.0) or later. Current version: {mac_version}"
+                    (
+                        "LiveText requires macOS Sonoma (14.0) or later. "
+                        f"Current version: {mac_version}"
+                    )
                 )
         except (ValueError, IndexError) as e:
-            raise OCRProcessingError(
-                f"Invalid macOS version format: {mac_version}"
-            ) from e
+            raise OCRProcessingError(f"Invalid macOS version format: {mac_version}") from e
 
-    def process(self, file_path: Path, params: OcrmacParams | None = None) -> str:
+    def process(self, file_path: Path, params: OCREngineParams | None = None) -> str:
         """Process document using ocrmac and return HOCR XML.
 
         Args:
@@ -80,6 +89,8 @@ class OcrmacEngine(OCREngine):
         # Use defaults if no params provided
         if params is None:
             params = OcrmacParams()
+        elif not isinstance(params, OcrmacParams):
+            params = OcrmacParams.model_validate(params.model_dump())
 
         # Validate LiveText requirements
         self._validate_livetext_requirement(params.recognition_level)
@@ -109,14 +120,16 @@ class OcrmacEngine(OCREngine):
     def _process_image(self, image_path: Path, params: OcrmacParams) -> str:
         """Process image with ocrmac."""
         try:
-            ocrmac = importlib.import_module("ocrmac")
+            ocrmac = importlib.import_module("ocrmac.ocrmac")
         except ImportError as e:
             raise OCRProcessingError(
                 "ocrmac not installed. Install with: pip install ocrmac"
             ) from e
 
         # Determine framework
-        framework_type = "livetext" if params.recognition_level == RecognitionLevel.LIVETEXT else "vision"
+        framework_type = (
+            "livetext" if params.recognition_level == RecognitionLevel.LIVETEXT else "vision"
+        )
 
         # Create OCR instance
         if params.recognition_level == RecognitionLevel.LIVETEXT:
@@ -145,16 +158,14 @@ class OcrmacEngine(OCREngine):
             image_width, image_height = img.size
 
         # Convert to HOCR
-        hocr_content = self._convert_to_hocr(
-            annotations, image_width, image_height, params
-        )
+        hocr_content = self._convert_to_hocr(annotations, image_width, image_height, params)
 
         return hocr_content
 
     def _process_pdf(self, pdf_path: Path, params: OcrmacParams) -> str:
         """Process PDF by converting to images then OCR."""
         try:
-            ocrmac = importlib.import_module("ocrmac")
+            ocrmac = importlib.import_module("ocrmac.ocrmac")
         except ImportError as e:
             raise OCRProcessingError(
                 "ocrmac not installed. Install with: pip install ocrmac"
@@ -167,7 +178,7 @@ class OcrmacEngine(OCREngine):
             raise OCRProcessingError(f"PDF conversion failed: {e}")
 
         # Process each page
-        page_hocr_list = []
+        page_hocr_list: list[str] = []
         for image in images:
             # Save temp image
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_file:
@@ -176,7 +187,11 @@ class OcrmacEngine(OCREngine):
 
             try:
                 # Process page
-                framework_type = "livetext" if params.recognition_level == RecognitionLevel.LIVETEXT else "vision"
+                framework_type = (
+                    "livetext"
+                    if params.recognition_level == RecognitionLevel.LIVETEXT
+                    else "vision"
+                )
 
                 if params.recognition_level == RecognitionLevel.LIVETEXT:
                     ocr_instance = ocrmac.OCR(
@@ -199,9 +214,7 @@ class OcrmacEngine(OCREngine):
                 annotations = ocr_instance.recognize()
                 image_width, image_height = image.size
 
-                page_hocr = self._convert_to_hocr(
-                    annotations, image_width, image_height, params
-                )
+                page_hocr = self._convert_to_hocr(annotations, image_width, image_height, params)
                 page_hocr_list.append(page_hocr)
             finally:
                 temp_path.unlink(missing_ok=True)
@@ -232,7 +245,11 @@ class OcrmacEngine(OCREngine):
 </html>"""
 
     def _convert_to_hocr(
-        self, annotations: list, image_width: int, image_height: int, params: OcrmacParams
+        self,
+        annotations: Sequence[Annotation],
+        image_width: int,
+        image_height: int,
+        params: OcrmacParams,
     ) -> str:
         """Convert ocrmac annotations to HOCR format.
 
@@ -243,22 +260,24 @@ class OcrmacEngine(OCREngine):
 
         # Head
         head = ET.SubElement(html, "head")
-        ET.SubElement(head, "meta", attrib={
-            "http-equiv": "content-type",
-            "content": "text/html; charset=utf-8"
-        })
-        ET.SubElement(head, "meta", attrib={
-            "name": "ocr-system",
-            "content": "ocrmac"
-        })
+        ET.SubElement(
+            head,
+            "meta",
+            attrib={"http-equiv": "content-type", "content": "text/html; charset=utf-8"},
+        )
+        ET.SubElement(head, "meta", attrib={"name": "ocr-system", "content": "ocrmac"})
 
         # Body
         body = ET.SubElement(html, "body")
-        page = ET.SubElement(body, "div", attrib={
-            "class": "ocr_page",
-            "id": "page_1",
-            "title": f"bbox 0 0 {image_width} {image_height}"
-        })
+        page = ET.SubElement(
+            body,
+            "div",
+            attrib={
+                "class": "ocr_page",
+                "id": "page_1",
+                "title": f"bbox 0 0 {image_width} {image_height}",
+            },
+        )
 
         # Convert annotations to words
         for idx, annotation in enumerate(annotations, start=1):
@@ -271,11 +290,17 @@ class OcrmacEngine(OCREngine):
             y_max = int((1.0 - bbox[1]) * image_height)
 
             # Create word element
-            word_elem = ET.SubElement(page, "span", attrib={
-                "class": "ocrx_word",
-                "id": f"word_1_{idx}",
-                "title": f"bbox {x_min} {y_min} {x_max} {y_max}; x_wconf {int(confidence * 100)}"
-            })
+            word_elem = ET.SubElement(
+                page,
+                "span",
+                attrib={
+                    "class": "ocrx_word",
+                    "id": f"word_1_{idx}",
+                    "title": (
+                        f"bbox {x_min} {y_min} {x_max} {y_max}; x_wconf {int(confidence * 100)}"
+                    ),
+                },
+            )
             word_elem.text = text
 
         # Generate HOCR XML

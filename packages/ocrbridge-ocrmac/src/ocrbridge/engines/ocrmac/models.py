@@ -3,8 +3,9 @@
 import re
 from enum import Enum
 
-from ocrbridge.core.models import OCREngineParams
 from pydantic import Field, field_validator
+
+from ocrbridge.core.models import OCREngineParams  # type: ignore[reportMissingTypeStubs]
 
 
 class RecognitionLevel(str, Enum):
@@ -40,7 +41,10 @@ class OcrmacParams(OCREngineParams):
 
     recognition_level: RecognitionLevel = Field(
         default=RecognitionLevel.BALANCED,
-        description="Recognition level: fast (~131ms), balanced (default, ~150ms), accurate (~207ms), livetext (~174ms, requires macOS Sonoma 14.0+)",
+        description=(
+            "Recognition level: fast (~131ms), balanced (default, ~150ms), "
+            "accurate (~207ms), livetext (~174ms, requires macOS Sonoma 14.0+)"
+        ),
     )
 
     @field_validator("languages")
