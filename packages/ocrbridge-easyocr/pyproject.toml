@@ -16,6 +16,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+build = ["hatchling"]
 dev = [
     "pytest~=8.0",
     "pytest-cov>=7.0.0",
