@@ -1,0 +1,25 @@
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Protocol
+
+from .models import OCREngineParams
+
+
+class UnsupportedFormatError(Exception):
+    ...
+
+
+class OCRProcessingError(Exception):
+    ...
+
+
+class OCREngine(Protocol):
+    @property
+    def name(self) -> str: ...
+
+    @property
+    def supported_formats(self) -> set[str]: ...
+
+    def process(self, file_path: Path, params: OCREngineParams | None = ...) -> str:
+        ...

@@ -4,8 +4,9 @@ import functools
 import re
 import subprocess
 
-from ocrbridge.core.models import OCREngineParams
 from pydantic import Field, field_validator
+
+from ocrbridge.core.models import OCREngineParams
 
 # Default fallback languages if tesseract --list-langs fails
 DEFAULT_TESSERACT_LANGUAGES = {
@@ -20,6 +21,10 @@ DEFAULT_TESSERACT_LANGUAGES = {
     "chi_sim",
     "jpn",
 }
+
+# Constants for language validation
+LANGUAGE_SEGMENT_PATTERN = re.compile(r"^[a-z_]{3,7}$")
+MAX_LANGUAGES = 5
 
 
 @functools.lru_cache(maxsize=1)
@@ -58,9 +63,6 @@ def get_installed_languages() -> set[str]:
 
 class TesseractParams(OCREngineParams):
     """Tesseract OCR engine parameters with validation."""
-
-    _LANGUAGE_SEGMENT_PATTERN = re.compile(r"^[a-z_]{3,7}$")
-    _MAX_LANGUAGES = 5
 
     lang: str | None = Field(
         default="eng",
@@ -104,12 +106,10 @@ class TesseractParams(OCREngineParams):
 
         langs = v.split("+")
 
-        if len(langs) > cls._MAX_LANGUAGES:
-            raise ValueError(f"Maximum {cls._MAX_LANGUAGES} languages allowed, got {len(langs)}")
+        if len(langs) > MAX_LANGUAGES:
+            raise ValueError(f"Maximum {MAX_LANGUAGES} languages allowed, got {len(langs)}")
 
-        invalid_format = [
-            lang for lang in langs if not cls._LANGUAGE_SEGMENT_PATTERN.fullmatch(lang)
-        ]
+        invalid_format = [lang for lang in langs if not LANGUAGE_SEGMENT_PATTERN.fullmatch(lang)]
         if invalid_format:
             raise ValueError(
                 f"Invalid language format: {', '.join(invalid_format)}. "

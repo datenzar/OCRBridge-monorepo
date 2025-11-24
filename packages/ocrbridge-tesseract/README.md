@@ -64,7 +64,3 @@ params = TesseractParams(
 )
 hocr = engine.process(Path("document.pdf"), params)
 ```
-
-## Version
-
-0.1.0

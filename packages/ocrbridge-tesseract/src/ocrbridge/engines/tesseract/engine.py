@@ -3,8 +3,10 @@
 from pathlib import Path
 
 import pytesseract
-from ocrbridge.core import OCREngine, OCRProcessingError, UnsupportedFormatError
 from pdf2image import convert_from_path
+
+from ocrbridge.core import OCREngine, OCRProcessingError, UnsupportedFormatError
+from ocrbridge.core.models import OCREngineParams
 
 from .models import TesseractParams
 
@@ -29,7 +31,7 @@ class TesseractEngine(OCREngine):
         """Return supported file extensions."""
         return {".jpg", ".jpeg", ".png", ".pdf", ".tiff", ".tif"}
 
-    def process(self, file_path: Path, params: TesseractParams | None = None) -> str:
+    def process(self, file_path: Path, params: OCREngineParams | None = None) -> str:
         """Process a document using Tesseract and return HOCR XML output.
 
         Args:
@@ -46,6 +48,8 @@ class TesseractEngine(OCREngine):
         # Use defaults if no params provided
         if params is None:
             params = TesseractParams()
+        elif not isinstance(params, TesseractParams):
+            raise TypeError("Tesseract engine requires TesseractParams")
 
         # Validate file format
         suffix = file_path.suffix.lower()
@@ -57,7 +61,7 @@ class TesseractEngine(OCREngine):
 
         # Build Tesseract configuration
         lang = params.lang or "eng"
-        config_parts = []
+        config_parts: list[str] = []
 
         if params.psm is not None:
             config_parts.append(f"--psm {params.psm}")
@@ -124,7 +128,7 @@ class TesseractEngine(OCREngine):
             raise OCRProcessingError(f"PDF conversion failed: {str(e)}")
 
         # Process each page
-        page_hocr_list = []
+        page_hocr_list: list[str] = []
         for image in images:
             # Run Tesseract on page image
             hocr_output = pytesseract.image_to_pdf_or_hocr(
@@ -154,7 +158,7 @@ class TesseractEngine(OCREngine):
             Combined HOCR XML string
         """
         # Extract body content from each page and combine
-        combined_body = ""
+        combined_body: str = ""
         for page_hocr in page_hocr_list:
             # Extract content between <body> tags
             start = page_hocr.find("<body>")
