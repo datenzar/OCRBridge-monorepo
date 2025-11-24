@@ -26,8 +26,11 @@ jobs:
       - name: Setup | Install uv
         uses: asdf-vm/actions/install@1902764435ca0dd2f3388eea723a4f92a4eb8302  # v4.0.2
 
+      - name: Install poppler (macOS)
+        run: brew install poppler
+
       - name: Setup | Install Python & Project dependencies
-        run: uv sync --extra build
+        run: uv sync --extra build --extra dev
 
       - name: Build | Build next version artifacts
         id: version
@@ -64,7 +67,7 @@ jobs:
 
   test-e2e:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - name: Setup | Checkout Repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
@@ -79,6 +82,9 @@ jobs:
         with:
           name: ${{ needs.build.outputs.distribution-artifacts }}
           path: ./dist
+
+      - name: Install Poppler (macOS)
+        run: brew install poppler
 
       - name: Setup | Install uv
         uses: asdf-vm/actions/install@1902764435ca0dd2f3388eea723a4f92a4eb8302  # v4.0.2
@@ -97,7 +103,7 @@ jobs:
 
 
   release:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     needs:
       - build
       - test-e2e
@@ -124,7 +130,7 @@ jobs:
         uses: asdf-vm/actions/install@1902764435ca0dd2f3388eea723a4f92a4eb8302  # v4.0.2
 
       - name: Setup | Install Python & Project dependencies
-        run: uv sync --extra build
+        run: uv sync --extra build --extra dev
 
       - name: Setup | Download Build Artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0

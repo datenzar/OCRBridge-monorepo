@@ -14,6 +14,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+build = ["hatchling"]
 dev = [
     "pytest~=8.0",
     "ruff>=0.1.0",
@@ -21,6 +22,7 @@ dev = [
     "pytest-cov>=7.0.0",
     "python-semantic-release>=10.5.2",
 ]
+test = ["pytest~=8.0"]
 
 # Entry point for engine discovery
 [project.entry-points."ocrbridge.engines"]
@@ -41,15 +43,34 @@ target-version = "py311"
 select = ["E", "F", "I", "N", "W"]
 ignore = []
 
-[tool.pytest.ini_options]
-pythonpath = ["src"]
-testpaths = ["tests"]
-
 [tool.pyright]
 typeCheckingMode = "strict"
 pythonVersion = "3.10"
-reportMissingTypeStubs = false
-reportPrivateUsage = "none"
+include = ["src"]
+exclude = ["tests"]
+extraPaths = ["typings"]
+reportMissingTypeStubs = "none"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+    "integration: marks tests as integration tests requiring Tesseract binary",
+    "slow: marks tests as slow running",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/tests/*", "*/__pycache__/*", "*/.venv/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
 
 [tool.semantic_release]
 build_command = """
