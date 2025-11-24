@@ -27,7 +27,7 @@ jobs:
         uses: asdf-vm/actions/install@1902764435ca0dd2f3388eea723a4f92a4eb8302  # v4.0.2
 
       - name: Setup | Install Python & Project dependencies
-        run: uv sync --extra build
+        run: uv sync --extra build --extra dev
 
       - name: Build | Build next version artifacts
         id: version
