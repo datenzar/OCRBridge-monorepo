@@ -56,7 +56,3 @@ See the engine packages for examples:
 - `ocrbridge-tesseract` - Simple reference implementation
 - `ocrbridge-easyocr` - Deep learning with GPU support
 - `ocrbridge-ocrmac` - Platform-specific (macOS only)
-
-## Version
-
-0.1.0
