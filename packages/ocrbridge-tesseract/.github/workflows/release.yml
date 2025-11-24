@@ -90,7 +90,7 @@ jobs:
         if: ${{ steps.artifact-download.outcome == 'success' }}
         run: |
           uv pip uninstall ocrbridge-tesseract
-          uv pip install dist/ocrbridge_core-*.whl
+          uv pip install dist/ocrbridge_tesseract-*.whl
 
       - name: Test | Run pytest
         run: uv run pytest -vv
