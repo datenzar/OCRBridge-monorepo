@@ -66,7 +66,7 @@ class TestLanguageValidation:
         """Test that more than 5 languages raises an error."""
         with pytest.raises(ValidationError) as exc_info:
             TesseractParams(lang="eng+fra+deu+spa+ita+por")
-        assert "Maximum 5 languages allowed" in str(exc_info.value)
+        assert "must have at most 5 item(s)" in str(exc_info.value)
 
     def test_invalid_language_format_too_short(self, mock_installed_languages):
         """Test that language codes too short are rejected."""

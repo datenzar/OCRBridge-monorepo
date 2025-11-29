@@ -1,12 +1,17 @@
 """Tesseract OCR engine parameter models."""
 
 import functools
-import re
 import subprocess
 
 from pydantic import Field, field_validator
 
 from ocrbridge.core.models import OCREngineParams
+from ocrbridge.core.validation import (
+    PATTERN_TESSERACT_LANG_SEGMENT,
+    normalize_lowercase,
+    validate_list_length,
+    validate_regex_pattern,
+)
 
 # Default fallback languages if tesseract --list-langs fails
 DEFAULT_TESSERACT_LANGUAGES = {
@@ -23,7 +28,6 @@ DEFAULT_TESSERACT_LANGUAGES = {
 }
 
 # Constants for language validation
-LANGUAGE_SEGMENT_PATTERN = re.compile(r"^[a-z_]{3,7}$")
 MAX_LANGUAGES = 5
 
 
@@ -67,7 +71,7 @@ class TesseractParams(OCREngineParams):
     lang: str | None = Field(
         default="eng",
         pattern=r"^[a-z_]{3,7}(\+[a-z_]{3,7})*$",
-        description="Language code(s): 'eng', 'fra', 'eng+fra' (max 5)",
+        description=f"Language code(s): 'eng', 'fra', 'eng+fra' (max {MAX_LANGUAGES} languages)",
         examples=["eng", "eng+fra", "eng+fra+deu"],
     )
 
@@ -93,9 +97,7 @@ class TesseractParams(OCREngineParams):
     @classmethod
     def normalize_language(cls, v: str | None) -> str | None:
         """Normalize language codes to lowercase and trim whitespace."""
-        if v is None:
-            return v
-        return v.strip().lower()
+        return normalize_lowercase(v)
 
     @field_validator("lang", mode="after")
     @classmethod
@@ -104,18 +106,20 @@ class TesseractParams(OCREngineParams):
         if v is None:
             return v
 
+        # Split and validate count
         langs = v.split("+")
+        validate_list_length(langs, max_length=MAX_LANGUAGES, field_name="languages")
 
-        if len(langs) > MAX_LANGUAGES:
-            raise ValueError(f"Maximum {MAX_LANGUAGES} languages allowed, got {len(langs)}")
-
-        invalid_format = [lang for lang in langs if not LANGUAGE_SEGMENT_PATTERN.fullmatch(lang)]
-        if invalid_format:
-            raise ValueError(
-                f"Invalid language format: {', '.join(invalid_format)}. "
-                "Use 3-7 lowercase letters or underscores (e.g., 'eng', 'chi_sim')."
+        # Validate each segment format using core pattern
+        for lang in langs:
+            validate_regex_pattern(
+                lang,
+                PATTERN_TESSERACT_LANG_SEGMENT,
+                f"Language '{lang}' must be 3-7 lowercase letters or underscores "
+                f"(e.g., 'eng', 'chi_sim')",
             )
 
+        # Engine-specific: Check against installed languages
         installed = get_installed_languages()
         invalid = [lang for lang in langs if lang not in installed]
 

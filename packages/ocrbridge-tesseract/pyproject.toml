@@ -7,10 +7,11 @@ requires-python = ">=3.10"
 license = {text = "MIT"}
 
 dependencies = [
-    "ocrbridge-core>=0.1.0",
+    "ocrbridge-core>=2.0.0",
     "pytesseract>=0.3.13",
     "pdf2image>=1.17.0",
     "Pillow>=10.0.0",
+    "pydantic>=2.0",
 ]
 
 [project.optional-dependencies]
