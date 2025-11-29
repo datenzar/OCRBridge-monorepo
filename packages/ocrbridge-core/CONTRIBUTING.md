@@ -36,7 +36,7 @@ If you then still feel the need to ask a question and need clarification, we rec
 
 - Open an [Issue](https://github.com/OCRBridge/ocrbridge-core/issues/new).
 - Provide as much context as you can about what you're running into.
-- Provide project and platform versions (nodejs, npm, etc), depending on what seems relevant.
+- Provide project and platform versions (Python version, OS, etc), depending on what seems relevant.
 
 We will then take care of the issue as soon as possible.
 
@@ -66,7 +66,7 @@ A good bug report shouldn't leave others needing to chase you up for more inform
 <!-- omit in toc -->
 #### How Do I Submit a Good Bug Report?
 
-> You must never report security related issues, vulnerabilities or bugs including sensitive information to the issue tracker, or elsewhere in public. Instead sensitive bugs must be sent by email to <>.
+> You must never report security related issues, vulnerabilities or bugs including sensitive information to the issue tracker, or elsewhere in public.
 <!-- You may add a PGP key to allow the messages to be sent encrypted as well. -->
 
 We use GitHub issues to track bugs and errors. If you run into an issue with the project:
@@ -111,16 +111,45 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/OCRBri
 <!-- You might want to create an issue template for enhancement suggestions that can be used as a guide and that defines the structure of the information to be included. If you do so, reference it here in the description. -->
 
 ### Your First Code Contribution
-<!-- TODO
-include Setup of env, IDE and typical getting started instructions?
 
--->
+#### Development Setup
+
+This project uses [uv](https://github.com/astral-sh/uv) for dependency management and a `Makefile` for common tasks.
+
+1.  **Install `uv`:**
+    Follow the instructions at [https://github.com/astral-sh/uv](https://github.com/astral-sh/uv) to install `uv` for your system.
+
+2.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/OCRBridge/ocrbridge-core.git
+    cd ocrbridge-core
+    ```
+
+3.  **Install dependencies:**
+    ```bash
+    make install
+    ```
+    This command uses `uv` to sync dependencies and install development extras.
+
+4.  **Verify setup:**
+    Run the full check suite to ensure everything is working:
+    ```bash
+    make check
+    ```
+
+#### Common Tasks
+
+The `Makefile` provides shortcuts for common development tasks:
+
+-   **Run Tests:** `make test` (runs `pytest`)
+-   **Lint Code:** `make lint` (runs `ruff check`)
+-   **Format Code:** `make format` (runs `ruff format`)
+-   **Type Check:** `make typecheck` (runs `pyright`)
+-   **Run All Checks:** `make check` (lint + typecheck + test)
 
 ### Improving The Documentation
-<!-- TODO
-Updating, improving and correcting the documentation
 
--->
+Documentation is key! If you find a typo, an error, or a missing explanation, please submit a PR. We value documentation improvements as much as code changes.
 
 ## Styleguides
 ### Commit Messages
@@ -206,7 +235,8 @@ Refs: #123
 ```
 
 ## Join The Project Team
-<!-- TODO -->
+
+We are always looking for more contributors! If you are interested in taking a more active role in maintaining `ocrbridge-core`, please reach out to us via an issue or by contributing frequently.
 
 <!-- omit in toc -->
 ## Attribution

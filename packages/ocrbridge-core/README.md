@@ -12,11 +12,14 @@ Core interfaces and utilities for OCR Bridge engine packages.
 pip install ocrbridge-core
 ```
 
-For local development:
+For local development, we recommend using `uv` and the provided `Makefile`.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed setup instructions.
 
 ```bash
-cd packages/ocrbridge-core
-pip install -e .
+# Quick start (requires uv)
+make install
+make check
 ```
 
 ## Core Components

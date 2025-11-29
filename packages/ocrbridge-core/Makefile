@@ -24,7 +24,7 @@ format: install
 	$(UV) run $(RUFF) format src tests
 
 typecheck: install
-	$(UV) run $(PYRIGHT)
+	$(UV) run $(PYRIGHT) --project pyproject.toml
 
 test: install
 	$(UV) run pytest
