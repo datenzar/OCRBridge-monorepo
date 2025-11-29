@@ -92,7 +92,7 @@ Examples:
 
 ### Python Style
 - **Line length**: 100 characters (Ruff configured)
-- **Python version**: 3.11+ (uses modern type hints like `list[str]`, `tuple[float, float]`)
+- **Python version**: 3.10+
 - **Type checking**: Strict mode with pyright
 - **Linting**: Ruff with rules E, F, I, N, W enabled
 - Type annotations required on all public functions

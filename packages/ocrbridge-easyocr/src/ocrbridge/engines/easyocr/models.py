@@ -1,8 +1,13 @@
 """EasyOCR engine parameter models."""
 
-from pydantic import Field, field_validator
+from pydantic import Field, ValidationInfo, field_validator
 
 from ocrbridge.core.models import OCREngineParams
+from ocrbridge.core.validation import (
+    validate_list_length,
+    validate_probability,
+    validate_whitelist,
+)
 
 # EasyOCR supported languages (80+ languages)
 EASYOCR_SUPPORTED_LANGUAGES = {
@@ -119,31 +124,26 @@ class EasyOCRParams(OCREngineParams):
     @classmethod
     def validate_languages(cls, v: list[str]) -> list[str]:
         """Validate EasyOCR language codes against supported languages."""
-        if not v:
-            raise ValueError("At least one language required for EasyOCR")
+        # Use core utilities for common validations
+        validate_list_length(v, min_length=1, max_length=5, field_name="languages")
 
-        if len(v) > 5:
-            raise ValueError("Maximum 5 languages allowed for EasyOCR")
-
-        # Check all languages are supported
-        invalid_langs = [lang for lang in v if lang not in EASYOCR_SUPPORTED_LANGUAGES]
-
-        if invalid_langs:
+        # Engine-specific: Check against EasyOCR whitelist with improved error
+        try:
+            validate_whitelist(v, EASYOCR_SUPPORTED_LANGUAGES, field_name="EasyOCR languages")
+        except ValueError as e:
+            # Add helpful hint about format difference
             raise ValueError(
-                (
-                    f"Unsupported EasyOCR language codes: {invalid_langs}. "
-                    "Use EasyOCR format (e.g., 'en', 'ch_sim', 'ja'), "
-                    "not Tesseract format ('eng', 'chi_sim')"
-                )
+                f"{e}. Use EasyOCR format (e.g., 'en', 'ch_sim', 'ja'), "
+                "not Tesseract format ('eng', 'chi_sim')"
             )
 
         return v
 
     @field_validator("text_threshold", "link_threshold")
     @classmethod
-    def validate_threshold(cls, v: float) -> float:
+    def validate_threshold(cls, v: float, info: ValidationInfo) -> float:
         """Validate threshold is within valid range."""
-        if not 0.0 <= v <= 1.0:
-            raise ValueError("Threshold must be between 0.0 and 1.0")
-
-        return v
+        # Use core utility for probability validation
+        # Check if field_name is available (it should be for field validators)
+        field_name = info.field_name or "threshold"
+        return validate_probability(v, field_name=field_name)

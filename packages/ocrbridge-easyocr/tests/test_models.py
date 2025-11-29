@@ -42,7 +42,7 @@ class TestEasyOCRParams:
             EasyOCRParams(languages=["eng"])  # Tesseract format, not EasyOCR
 
         error = exc_info.value.errors()[0]
-        assert "Unsupported EasyOCR language codes" in error["msg"]
+        assert "Invalid values for 'EasyOCR languages'" in error["msg"]
         assert "eng" in error["msg"]
 
     def test_invalid_multiple_language_codes(self) -> None:
@@ -51,7 +51,7 @@ class TestEasyOCRParams:
             EasyOCRParams(languages=["eng", "chi_sim", "invalid"])
 
         error = exc_info.value.errors()[0]
-        assert "Unsupported EasyOCR language codes" in error["msg"]
+        assert "Invalid values for 'EasyOCR languages'" in error["msg"]
 
     def test_empty_languages_list(self) -> None:
         """Test EasyOCRParams rejects empty language list."""
