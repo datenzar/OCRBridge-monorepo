@@ -61,7 +61,3 @@ params_livetext = OcrmacParams(
 )
 hocr = engine.process(Path("document.pdf"), params_livetext)
 ```
-
-## Version
-
-0.1.0

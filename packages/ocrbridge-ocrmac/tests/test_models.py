@@ -104,7 +104,7 @@ class TestOcrmacParams:
 
             # Should raise a value_error from our custom validator
             error_str = str(exc_info.value)
-            assert "Invalid IETF BCP 47 language code" in error_str or "value_error" in error_str
+            assert "Invalid IETF BCP 47" in error_str or "value_error" in error_str
 
     def test_empty_language_list(self) -> None:
         """Test that empty language list raises error."""

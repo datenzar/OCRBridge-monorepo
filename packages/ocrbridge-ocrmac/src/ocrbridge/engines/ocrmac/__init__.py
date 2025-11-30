@@ -5,4 +5,4 @@ from .models import OcrmacParams, RecognitionLevel
 
 __all__ = ["OcrmacEngine", "OcrmacParams", "RecognitionLevel"]
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"

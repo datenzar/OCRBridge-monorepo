@@ -1,11 +1,15 @@
 """ocrmac OCR engine parameter models."""
 
-import re
 from enum import Enum
 
 from pydantic import Field, field_validator
 
 from ocrbridge.core.models import OCREngineParams  # type: ignore[reportMissingTypeStubs]
+from ocrbridge.core.validation import (
+    PATTERN_IETF_BCP47,
+    validate_language_code_format,
+    validate_list_length,
+)
 
 
 class RecognitionLevel(str, Enum):
@@ -54,18 +58,14 @@ class OcrmacParams(OCREngineParams):
         if v is None:
             return v
 
-        if len(v) > 5:
-            raise ValueError("Maximum 5 languages allowed")
+        # Use core utilities for validation
+        validate_list_length(v, max_length=5, field_name="languages")
 
-        # IETF BCP 47 format: language[-Script][-Region]
-        # Examples: en, en-US, zh-Hans, zh-Hans-CN
-        pattern = r"^[a-z]{2,3}(-[A-Z][a-z]{3})?(-[A-Z]{2})?$"
-
+        # Validate each language code format using core utility
         for lang in v:
-            if not re.match(pattern, lang, re.IGNORECASE):
-                raise ValueError(
-                    f"Invalid IETF BCP 47 language code: '{lang}'. "
-                    f"Expected format: 'en-US', 'fr-FR', 'zh-Hans'"
-                )
+            validate_language_code_format(
+                lang,
+                PATTERN_IETF_BCP47,
+            )
 
         return v

@@ -29,6 +29,8 @@ class OcrmacEngine(OCREngine):
     Platform: macOS 10.15+ (macOS Sonoma 14.0+ for LiveText)
     """
 
+    __param_model__ = OcrmacParams
+
     @property
     def name(self) -> str:
         """Return engine name."""
