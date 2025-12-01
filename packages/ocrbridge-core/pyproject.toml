@@ -11,13 +11,13 @@ dependencies = ["pydantic>=2.0.0"]
 [project.optional-dependencies]
 build = ["python-semantic-release>=10.5.2"]
 dev = [
-    "pytest~=8.0",
+    "pytest~=9.0",
     "ruff>=0.1.0",
     "pyright>=1.1.0",
     "pytest-cov>=7.0.0",
     "python-semantic-release>=10.5.2",
 ]
-test = ["pytest~=8.0"]
+test = ["pytest~=9.0"]
 
 [build-system]
 requires = ["hatchling"]
