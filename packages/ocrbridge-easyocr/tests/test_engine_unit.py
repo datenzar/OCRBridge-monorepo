@@ -376,7 +376,7 @@ class TestToHOCR:
 
         # Mock easyocr_to_hocr from core
         mock_converter = mocker.patch(
-            "ocrbridge.engines.easyocr.engine.easyocr_to_hocr",
+            "ocrbridge.engines.easyocr.hocr.to_hocr",
             return_value="<hocr>converted</hocr>",
         )
 
@@ -395,7 +395,7 @@ class TestToHOCR:
 
         # Mock easyocr_to_hocr from core
         mock_converter = mocker.patch(
-            "ocrbridge.engines.easyocr.engine.easyocr_to_hocr",
+            "ocrbridge.engines.easyocr.hocr.to_hocr",
             return_value="<hocr>converted</hocr>",
         )
 

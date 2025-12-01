@@ -10,8 +10,8 @@ from PIL import Image
 
 from ocrbridge.core import OCREngine, OCRProcessingError, UnsupportedFormatError
 from ocrbridge.core.models import OCREngineParams
-from ocrbridge.core.utils import easyocr_to_hocr
 
+from . import hocr as hocr_utils
 from .models import EasyOCRParams
 
 pdf2image = cast(Any, _pdf2image)
@@ -299,7 +299,7 @@ class EasyOCREngine(OCREngine):
             # Use default dimensions if image can't be opened
             image_width, image_height = 1000, 1000
 
-        # Convert to HOCR using utility from core
-        hocr_xml = easyocr_to_hocr(easyocr_results, image_width, image_height)
+        # Convert to HOCR using internal utility
+        hocr_xml = hocr_utils.to_hocr(easyocr_results, image_width, image_height)
 
         return hocr_xml
