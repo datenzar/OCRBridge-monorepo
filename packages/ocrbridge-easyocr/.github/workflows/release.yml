@@ -73,7 +73,7 @@ jobs:
           fetch-depth: 1
 
       - name: Setup | Download Distribution Artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53  # v6.0.0
         if: ${{ needs.build.outputs.new-release-detected == 'true' }}
         id: artifact-download
         with:
@@ -130,14 +130,14 @@ jobs:
         run: uv sync --extra build --extra dev
 
       - name: Setup | Download Build Artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53  # v6.0.0
         id: artifact-download
         with:
           name: ${{ needs.build.outputs.distribution-artifacts }}
           path: dist
 
       - name: Setup | Download Lock File Artifact
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53  # v6.0.0
         with:
           name: ${{ needs.build.outputs.lock-file-artifact }}
 
@@ -176,7 +176,7 @@ jobs:
 
     steps:
       - name: Setup | Download Build Artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53  # v6.0.0
         id: artifact-download
         with:
           name: ${{ needs.build.outputs.distribution-artifacts }}
