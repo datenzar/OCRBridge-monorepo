@@ -1,8 +1,4 @@
-UV := uv
-RUFF := ruff
-PYRIGHT := pyright
-
-DEFAULT_GOAL := all
+.PHONY: install lint format typecheck test check all help
 
 help:
 	@printf "Available targets:\n"
@@ -15,22 +11,20 @@ help:
 	@printf "  %-12s%s\n" "all" "check + format"
 
 install:
-	$(UV) sync --extra dev
+	uv sync --extra dev
 
 lint: install
-	$(UV) run $(RUFF) check src tests
+	uv run ruff check
 
 format: install
-	$(UV) run $(RUFF) format src tests
+	uv run ruff format
 
 typecheck: install
-	$(UV) run $(PYRIGHT) --project pyproject.toml
+	uv run pyright
 
 test: install
-	$(UV) run pytest
+	uv run pytest
 
 check: lint typecheck test
 
 all: check format
-
-.PHONY: install lint format typecheck test check all help
