@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v3.0.0 (2025-12-01)
+
+### Refactoring
+
+- **core**: Remove engine-specific HOCR conversion from core utils
+  ([`3fb2ca0`](https://github.com/OCRBridge/ocrbridge-core/commit/3fb2ca03f5e6c647611c6d3ceb8d3ed975fc3c5d))
+
+### Breaking Changes
+
+- **core**: `easyocr_to_hocr()` function removed from `ocrbridge.core.utils.hocr`. Users must
+  migrate to engine-specific packages for HOCR conversion functionality.
+
+
 ## v2.0.0 (2025-11-29)
 
 ### Documentation
