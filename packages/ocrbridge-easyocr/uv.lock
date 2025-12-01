@@ -910,19 +910,19 @@ wheels = [
 
 [[package]]
 name = "ocrbridge-core"
-version = "2.0.0"
+version = "3.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ac/ed/af98ad6d9c57f277e414dc8962a44341a5726c8e15a120ea8fd15fc0d331/ocrbridge_core-2.0.0.tar.gz", hash = "sha256:e763390d44f313050686756056a62458ce4a44ba89760b395a5389add7b70a64", size = 94244, upload-time = "2025-11-29T17:26:05.38Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2c/c0/bb6b91d357a83cd1ddb6d6022c780a5a23e2e0c7d0fde9e4860b6e34db57/ocrbridge_core-3.0.0.tar.gz", hash = "sha256:465529828116305b4bbb40dbe175cb1d3ccdacead37f2dbbe03991c9eafac3d7", size = 92473, upload-time = "2025-12-01T00:11:41.353Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f1/2a/f64fada140f7a2c0e750a89ea59df9a46299b2cdc697fe35d1381754d1da/ocrbridge_core-2.0.0-py3-none-any.whl", hash = "sha256:2666b0c9489f3b92108502971c503db31a2eca106836ade6259724ec47bd174f", size = 12290, upload-time = "2025-11-29T17:26:03.823Z" },
+    { url = "https://files.pythonhosted.org/packages/ce/56/0fa2815585049a33e8161cd8a373bc4db2d8900a7f55e4c393b4df8110e2/ocrbridge_core-3.0.0-py3-none-any.whl", hash = "sha256:7052f5ff30597c56a849a22121225a7f499b8f18bb14701b3110a4cc4e115441", size = 10471, upload-time = "2025-12-01T00:11:40.046Z" },
 ]
 
 [[package]]
 name = "ocrbridge-easyocr"
-version = "2.0.0"
+version = "3.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "easyocr" },
@@ -956,7 +956,7 @@ requires-dist = [
     { name = "easyocr", specifier = ">=1.7.2" },
     { name = "hatchling", marker = "extra == 'build'" },
     { name = "numpy", specifier = ">=1.24.0" },
-    { name = "ocrbridge-core", specifier = ">=2.0.0" },
+    { name = "ocrbridge-core", specifier = ">=3.0.0" },
     { name = "pdf2image", specifier = ">=1.17.0" },
     { name = "pillow", specifier = ">=10.0.0" },
     { name = "pyright", marker = "extra == 'dev'", specifier = ">=1.1.0" },
