@@ -92,7 +92,7 @@ def mock_pdf_convert_success(monkeypatch):
         return [fake_image]
 
     monkeypatch.setattr(
-        "ocrbridge.engines.tesseract.engine.convert_from_path", mock_convert_from_path
+        "ocrbridge.engines.tesseract.engine.convert_pdf_to_images", mock_convert_from_path
     )
 
 
@@ -107,7 +107,7 @@ def mock_pdf_convert_multipage(monkeypatch):
         return [fake_image1, fake_image2, fake_image3]
 
     monkeypatch.setattr(
-        "ocrbridge.engines.tesseract.engine.convert_from_path", mock_convert_from_path
+        "ocrbridge.engines.tesseract.engine.convert_pdf_to_images", mock_convert_from_path
     )
 
 

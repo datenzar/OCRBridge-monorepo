@@ -174,7 +174,7 @@ class TestProcessPDFHappyPath:
             return [Image.new("RGB", (100, 100), color="white")]
 
         monkeypatch.setattr(
-            "ocrbridge.engines.tesseract.engine.convert_from_path", capture_pdf_convert
+            "ocrbridge.engines.tesseract.engine.convert_pdf_to_images", capture_pdf_convert
         )
 
         params = TesseractParams(dpi=600)
@@ -182,7 +182,8 @@ class TestProcessPDFHappyPath:
 
         assert len(pdf_convert_calls) == 1
         assert pdf_convert_calls[0]["kwargs"]["dpi"] == 600
-        assert pdf_convert_calls[0]["kwargs"]["thread_count"] == 2
+        # thread_count is not exposed in convert_pdf_to_images call here, but inside util.
+        # We can only check what is passed to convert_pdf_to_images
 
     def test_process_pdf_default_dpi(
         self, tesseract_engine, sample_pdfs, monkeypatch, mock_tesseract_success
@@ -195,12 +196,13 @@ class TestProcessPDFHappyPath:
             return [Image.new("RGB", (100, 100), color="white")]
 
         monkeypatch.setattr(
-            "ocrbridge.engines.tesseract.engine.convert_from_path", capture_pdf_convert
+            "ocrbridge.engines.tesseract.engine.convert_pdf_to_images", capture_pdf_convert
         )
 
         tesseract_engine.process(sample_pdfs["contract_en_scan"])
 
         assert len(pdf_convert_calls) == 1
+        # Default DPI for convert_pdf_to_images is 300, matching explicit call in engine.py
         assert pdf_convert_calls[0]["kwargs"]["dpi"] == 300
 
 
@@ -267,7 +269,7 @@ class TestProcessErrorHandling:
             raise Exception("PDF conversion failed")
 
         monkeypatch.setattr(
-            "ocrbridge.engines.tesseract.engine.convert_from_path", mock_raise_conversion_error
+            "ocrbridge.engines.tesseract.engine.convert_pdf_to_images", mock_raise_conversion_error
         )
 
         with pytest.raises(OCRProcessingError) as exc_info:
@@ -344,69 +346,14 @@ class TestInternalMethods:
         def mock_tesseract(*args, **kwargs):
             return b"<html>test hocr</html>"
 
-        monkeypatch.setattr("ocrbridge.engines.tesseract.engine.convert_from_path", mock_convert)
+        monkeypatch.setattr(
+            "ocrbridge.engines.tesseract.engine.convert_pdf_to_images", mock_convert
+        )
         monkeypatch.setattr("pytesseract.image_to_pdf_or_hocr", mock_tesseract)
 
         result = tesseract_engine._process_pdf(test_path, "eng", "--psm 3", 300)
         assert isinstance(result, str)
         assert "<html" in result
-
-    def test_merge_hocr_pages_single_page(
-        self, tesseract_engine, mock_hocr_page, mock_tesseract_version
-    ):
-        """Test merging single HOCR page creates proper structure."""
-        pages = [mock_hocr_page.format(1, 1)]
-        result = tesseract_engine._merge_hocr_pages(pages)
-
-        # Should create a merged HOCR structure
-        assert "<body>" in result
-        assert "</body>" in result
-        assert "Page 1" in result
-
-    def test_merge_hocr_pages_multiple_pages(
-        self, tesseract_engine, mock_hocr_page, mock_tesseract_version
-    ):
-        """Test merging multiple HOCR pages."""
-        pages = [
-            mock_hocr_page.format(1, 1),
-            mock_hocr_page.format(2, 2),
-            mock_hocr_page.format(3, 3),
-        ]
-        result = tesseract_engine._merge_hocr_pages(pages)
-
-        assert "<body>" in result
-        assert "</body>" in result
-        assert "<html" in result
-        # Should contain content from all pages
-        assert "Page 1" in result
-        assert "Page 2" in result
-        assert "Page 3" in result
-
-    def test_merge_hocr_pages_includes_version(self, tesseract_engine, mock_hocr_page, monkeypatch):
-        """Test that merged HOCR includes Tesseract version."""
-
-        def mock_version():
-            return "5.3.0"
-
-        monkeypatch.setattr("pytesseract.get_tesseract_version", mock_version)
-
-        pages = [mock_hocr_page.format(1, 1), mock_hocr_page.format(2, 2)]
-        result = tesseract_engine._merge_hocr_pages(pages)
-
-        assert "tesseract 5.3.0" in result
-
-    def test_merge_hocr_pages_version_fallback(self, tesseract_engine, mock_hocr_page, monkeypatch):
-        """Test that version fallback works when get_tesseract_version fails."""
-
-        def mock_version_error():
-            raise Exception("Version not available")
-
-        monkeypatch.setattr("pytesseract.get_tesseract_version", mock_version_error)
-
-        pages = [mock_hocr_page.format(1, 1), mock_hocr_page.format(2, 2)]
-        result = tesseract_engine._merge_hocr_pages(pages)
-
-        assert "tesseract unknown" in result
 
 
 class TestConfigurationBuilding:

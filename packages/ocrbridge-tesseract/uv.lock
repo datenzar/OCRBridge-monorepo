@@ -459,14 +459,32 @@ wheels = [
 
 [[package]]
 name = "ocrbridge-core"
-version = "2.0.0"
-source = { registry = "https://pypi.org/simple" }
+version = "3.1.0"
+source = { directory = "../ocrbridge-core" }
 dependencies = [
+    { name = "pdf2image" },
+    { name = "pillow" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ac/ed/af98ad6d9c57f277e414dc8962a44341a5726c8e15a120ea8fd15fc0d331/ocrbridge_core-2.0.0.tar.gz", hash = "sha256:e763390d44f313050686756056a62458ce4a44ba89760b395a5389add7b70a64", size = 94244, upload-time = "2025-11-29T17:26:05.38Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f1/2a/f64fada140f7a2c0e750a89ea59df9a46299b2cdc697fe35d1381754d1da/ocrbridge_core-2.0.0-py3-none-any.whl", hash = "sha256:2666b0c9489f3b92108502971c503db31a2eca106836ade6259724ec47bd174f", size = 12290, upload-time = "2025-11-29T17:26:03.823Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "pdf2image", specifier = ">=1.17.0" },
+    { name = "pillow", specifier = ">=12.0.0" },
+    { name = "pydantic", specifier = ">=2.0.0" },
+    { name = "pytest", marker = "extra == 'test'", specifier = "~=9.0" },
+    { name = "python-semantic-release", marker = "extra == 'build'", specifier = ">=10.5.2" },
+]
+provides-extras = ["build", "test"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pyright", specifier = ">=1.1.0" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-cov", specifier = ">=5.0" },
+    { name = "pytest-mock", specifier = ">=3.12.0" },
+    { name = "python-semantic-release", specifier = ">=9.0" },
+    { name = "ruff", specifier = ">=0.1.0" },
 ]
 
 [[package]]
@@ -475,7 +493,6 @@ version = "2.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "ocrbridge-core" },
-    { name = "pdf2image" },
     { name = "pillow" },
     { name = "pydantic" },
     { name = "pytesseract" },
@@ -485,6 +502,11 @@ dependencies = [
 build = [
     { name = "python-semantic-release" },
 ]
+test = [
+    { name = "pytest" },
+]
+
+[package.dev-dependencies]
 dev = [
     { name = "pyright" },
     { name = "pytest" },
@@ -498,20 +520,24 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ocrbridge-core", specifier = ">=2.0.0" },
-    { name = "pdf2image", specifier = ">=1.17.0" },
+    { name = "ocrbridge-core", directory = "../ocrbridge-core" },
     { name = "pillow", specifier = ">=10.0.0" },
     { name = "pydantic", specifier = ">=2.0" },
-    { name = "pyright", marker = "extra == 'dev'", specifier = ">=1.1.0" },
     { name = "pytesseract", specifier = ">=0.3.13" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = "~=9.0" },
     { name = "pytest", marker = "extra == 'test'", specifier = "~=9.0" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=7.0.0" },
     { name = "python-semantic-release", marker = "extra == 'build'", specifier = ">=10.5.2" },
-    { name = "python-semantic-release", marker = "extra == 'dev'", specifier = ">=10.5.2" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
 ]
-provides-extras = ["build", "dev", "test"]
+provides-extras = ["build", "test"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pyright", specifier = ">=1.1.0" },
+    { name = "pytest", specifier = "~=9.0" },
+    { name = "pytest-cov", specifier = ">=7.0.0" },
+    { name = "python-semantic-release", specifier = ">=9.0" },
+    { name = "ruff", specifier = ">=0.1.0" },
+]
+test = [{ name = "pytest", specifier = "~=9.0" }]
 
 [[package]]
 name = "packaging"

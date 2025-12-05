@@ -15,13 +15,13 @@ help:
 	@printf "  %-12s%s\n" "all" "check + format"
 
 install:
-	$(UV) sync --extra dev
+	$(UV) sync --group dev
 
 lint: install
-	$(UV) run $(RUFF) check src tests
+	$(UV) run $(RUFF) check
 
 format: install
-	$(UV) run $(RUFF) format src tests
+	$(UV) run $(RUFF) format
 
 typecheck: install
 	$(UV) run $(PYRIGHT)
