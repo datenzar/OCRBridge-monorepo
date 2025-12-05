@@ -11,7 +11,7 @@ help:
 	@printf "  %-12s%s\n" "all" "check + format"
 
 install:
-	uv sync --extra dev
+	uv sync --group dev
 
 lint: install
 	uv run ruff check

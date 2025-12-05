@@ -2,7 +2,7 @@
 
 import pytest
 
-from ocrbridge.core.utils import (
+from ocrbridge.core.utils.hocr import (
     HOCRInfo,
     HOCRParseError,
     HOCRValidationError,

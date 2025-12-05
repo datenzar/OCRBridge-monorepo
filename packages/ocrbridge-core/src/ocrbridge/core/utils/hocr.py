@@ -108,3 +108,32 @@ def extract_bbox(element_title: str) -> tuple[int, int, int, int] | None:
         coords = match.groups()
         return (int(coords[0]), int(coords[1]), int(coords[2]), int(coords[3]))
     return None
+
+
+def merge_hocr_pages(page_hocr_list: list[str], system_name: str = "unknown") -> str:
+    """Merge multiple HOCR pages into a single document.
+
+    Args:
+        page_hocr_list: List of HOCR XML strings, one per page.
+        system_name: Name of the OCR system (e.g., 'tesseract', 'easyocr') to put in metadata.
+
+    Returns:
+        Combined HOCR XML string.
+    """
+    combined_body = ""
+    for page_hocr in page_hocr_list:
+        # Extract content between <body> tags
+        start = page_hocr.find("<body>")
+        end = page_hocr.find("</body>")
+        if start != -1 and end != -1:
+            combined_body += page_hocr[start + 6 : end]
+
+    return f"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta name="ocr-system" content="{system_name}" />
+</head>
+<body>{combined_body}</body>
+</html>"""
