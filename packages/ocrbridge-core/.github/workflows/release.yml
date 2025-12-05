@@ -18,7 +18,11 @@ jobs:
       - name: Setup | Checkout Repository at workflow sha
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Setup | Force branch to be at workflow sha
+        run: git reset --hard ${{ github.sha }}
 
       - name: Setup | Install uv
         uses: astral-sh/setup-uv@1e862dfacbd1d6d858c55d9b792c756523627244 # v7.1.4
@@ -117,6 +121,7 @@ jobs:
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v6.0.0
         with:
           ref: ${{ github.ref_name }}
+          fetch-depth: 0
 
       - name: Setup | Force release branch to be at workflow sha
         run: git reset --hard ${{ github.sha }}
