@@ -83,8 +83,3 @@ build_command = """
     uv build
 """
 version_toml = ["pyproject.toml:project.version"]
-
-[tool.uv.sources]
-ocrbridge-core = { path = "../ocrbridge-core" }
-
-
