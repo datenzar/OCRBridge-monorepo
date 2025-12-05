@@ -2,6 +2,38 @@
 
 <!-- version list -->
 
+## v3.0.0 (2025-12-05)
+
+### Chores
+
+- Remove unused uv sources configuration
+  ([`08ef14d`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/08ef14dbf96c45273d10cd0dde3d2af97e1df9e9))
+
+- **deps**: Update actions/checkout action to v6.0.1
+  ([`cb2ae07`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/cb2ae07e9f7fa00097699977050af519c60a539d))
+
+- **deps**: Update dependency @commitlint/cli to v20.2.0
+  ([`e3aa197`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/e3aa19769202ed88443cd9452a8e74901c286e59))
+
+- **deps**: Update dependency @commitlint/config-conventional to v20.2.0
+  ([`2bf44ff`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/2bf44ffbfa02cf9d3613f9b0f2d00edab58322c6))
+
+- **deps**: Update dependency uv to v0.9.14
+  ([`5c317ee`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/5c317ee2ea2668e7b4cbc932d09e19bcc61ca064))
+
+- **deps**: Update dependency uv to v0.9.15
+  ([`eeea731`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/eeea73187c83680ae9467b875fccb387e44466d8))
+
+### Features
+
+- Migrate to ocrbridge-core utility functions
+  ([`da3c100`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/da3c1009717a7816cc1d84ac153c08e82c6470dd))
+
+### Breaking Changes
+
+- Requires ocrbridge-core >=3.1.0 for PDF and HOCR utilities
+
+
 ## v2.0.1 (2025-12-01)
 
 ### Bug Fixes

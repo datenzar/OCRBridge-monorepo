@@ -460,36 +460,20 @@ wheels = [
 [[package]]
 name = "ocrbridge-core"
 version = "3.1.0"
-source = { directory = "../ocrbridge-core" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pdf2image" },
     { name = "pillow" },
     { name = "pydantic" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "pdf2image", specifier = ">=1.17.0" },
-    { name = "pillow", specifier = ">=12.0.0" },
-    { name = "pydantic", specifier = ">=2.0.0" },
-    { name = "pytest", marker = "extra == 'test'", specifier = "~=9.0" },
-    { name = "python-semantic-release", marker = "extra == 'build'", specifier = ">=10.5.2" },
-]
-provides-extras = ["build", "test"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pyright", specifier = ">=1.1.0" },
-    { name = "pytest", specifier = ">=8.0" },
-    { name = "pytest-cov", specifier = ">=5.0" },
-    { name = "pytest-mock", specifier = ">=3.12.0" },
-    { name = "python-semantic-release", specifier = ">=9.0" },
-    { name = "ruff", specifier = ">=0.1.0" },
+sdist = { url = "https://files.pythonhosted.org/packages/40/f1/ecf0ad67943cfdc34b18f57b287630dbed00c85f1f4a513d9d89b53e2846/ocrbridge_core-3.1.0.tar.gz", hash = "sha256:dabf79f1b6320db660b049a9dbbc97c5260936074a69f6ddddb96a330e2266db", size = 103718, upload-time = "2025-12-05T08:00:17.466Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/83/d4/e23fc25c4002e003b681b69504c8a3217882f354539d31bc4fa8b6b2be61/ocrbridge_core-3.1.0-py3-none-any.whl", hash = "sha256:3b363c3a0718218da762fc7928f57f509fa177161ee236bedace4fc6e3fcf4aa", size = 11490, upload-time = "2025-12-05T08:00:16.109Z" },
 ]
 
 [[package]]
 name = "ocrbridge-tesseract"
-version = "2.0.1"
+version = "3.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "ocrbridge-core" },
@@ -520,7 +504,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ocrbridge-core", directory = "../ocrbridge-core" },
+    { name = "ocrbridge-core", specifier = ">=3.1.0" },
     { name = "pillow", specifier = ">=10.0.0" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pytesseract", specifier = ">=0.3.13" },
