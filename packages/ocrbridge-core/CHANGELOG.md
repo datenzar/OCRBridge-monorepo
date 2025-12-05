@@ -2,6 +2,59 @@
 
 <!-- version list -->
 
+## v3.1.0 (2025-12-05)
+
+### Bug Fixes
+
+- **deps**: Update dependency pytest to v9
+  ([`60be5f6`](https://github.com/OCRBridge/ocrbridge-core/commit/60be5f6438f653127226f7ccc1d69f752f7e0b76))
+
+### Chores
+
+- **deps**: Update actions/checkout action to v6
+  ([`cd59ace`](https://github.com/OCRBridge/ocrbridge-core/commit/cd59ace18ae6b2842ad8efcc8a3290085488ca4d))
+
+- **deps**: Update actions/setup-node action to v6
+  ([`e662ad1`](https://github.com/OCRBridge/ocrbridge-core/commit/e662ad11e4862b35648ab37ae23530c660a2ec27))
+
+- **deps**: Update dependency astral-sh/uv to v0.9.13
+  ([`17bf90d`](https://github.com/OCRBridge/ocrbridge-core/commit/17bf90d98a34e0e802b721065571ec3867ee79ee))
+
+- **deps**: Update dependency astral-sh/uv to v0.9.14
+  ([`0a2b6e8`](https://github.com/OCRBridge/ocrbridge-core/commit/0a2b6e8d1a7cd00e8164cdeb0ee2ffaa2ba1e36c))
+
+- **deps**: Update dependency uv to v0.9.13
+  ([`5f52069`](https://github.com/OCRBridge/ocrbridge-core/commit/5f5206935fa1fb6090caaa2cf84655a31951cc27))
+
+- **deps**: Update dependency uv to v0.9.14
+  ([`f6d9eb4`](https://github.com/OCRBridge/ocrbridge-core/commit/f6d9eb4759b49156aca1efc5cf489266ef40201f))
+
+- **deps**: Update github artifact actions
+  ([`fefbb94`](https://github.com/OCRBridge/ocrbridge-core/commit/fefbb94a795a3c5f369d457267e96f4d6cd13ec2))
+
+- **deps**: Update pypa/gh-action-pypi-publish action to v1.13.0
+  ([`ffaf1f2`](https://github.com/OCRBridge/ocrbridge-core/commit/ffaf1f2b6fbd66c9278a3263467c661bad7fde78))
+
+- **deps**: Update python docker tag to v3.14.0
+  ([`eb4326b`](https://github.com/OCRBridge/ocrbridge-core/commit/eb4326b07413f4466a00a570bdcec792c4ae6044))
+
+### Continuous Integration
+
+- Fix detached HEAD issue in semantic-release workflow
+  ([`4f3b751`](https://github.com/OCRBridge/ocrbridge-core/commit/4f3b75118bb14039225687f358b9ce187746d388))
+
+- Update GitHub Actions workflows to use specific versions of actions
+  ([`cc7ddde`](https://github.com/OCRBridge/ocrbridge-core/commit/cc7ddde5991a4b703fc3884351be158d0f70a8c3))
+
+- **deps**: Add renovate configuration
+  ([`7ef159c`](https://github.com/OCRBridge/ocrbridge-core/commit/7ef159cd44be4e2d4b3b35cae372db6029530f18))
+
+### Features
+
+- Centralize PDF handling and HOCR merging utilities
+  ([`445e615`](https://github.com/OCRBridge/ocrbridge-core/commit/445e6154a768e6ed51e01abe78c74209ee561bf6))
+
+
 ## v3.0.0 (2025-12-01)
 
 ### Refactoring
