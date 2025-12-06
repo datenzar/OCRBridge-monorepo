@@ -204,10 +204,10 @@ class TestProcessPDF:
         ]
         engine.reader = mock_reader
 
-        # Mock pdf2image
+        # Mock convert_pdf_to_images
         mock_image = Image.new("RGB", (800, 600), color="white")
         mock_convert = mocker.patch(
-            "ocrbridge.engines.easyocr.engine.pdf2image.convert_from_path",
+            "ocrbridge.engines.easyocr.engine.convert_pdf_to_images",
             return_value=[mock_image],
         )
 
@@ -228,7 +228,7 @@ class TestProcessPDF:
         result = engine._process_pdf(pdf_path, params)
 
         assert result == "<hocr>page 1</hocr>"
-        mock_convert.assert_called_once_with(str(pdf_path), dpi=300, thread_count=2)
+        mock_convert.assert_called_once_with(pdf_path, dpi=300)
 
     def test_process_pdf_multiple_pages(self, mocker: Any, tmp_path: Path) -> None:
         """Test _process_pdf processes multi-page PDF."""
@@ -240,14 +240,14 @@ class TestProcessPDF:
         ]
         engine.reader = mock_reader
 
-        # Mock pdf2image with 3 pages
+        # Mock convert_pdf_to_images with 3 pages
         mock_images = [
             Image.new("RGB", (800, 600), color="white"),
             Image.new("RGB", (800, 600), color="white"),
             Image.new("RGB", (800, 600), color="white"),
         ]
         mocker.patch(
-            "ocrbridge.engines.easyocr.engine.pdf2image.convert_from_path",
+            "ocrbridge.engines.easyocr.engine.convert_pdf_to_images",
             return_value=mock_images,
         )
 
@@ -255,10 +255,9 @@ class TestProcessPDF:
         page_hocrs = ["<hocr>page 1</hocr>", "<hocr>page 2</hocr>", "<hocr>page 3</hocr>"]
         mocker.patch.object(engine, "_to_hocr", side_effect=page_hocrs)
 
-        # Mock _merge_hocr_pages
-        mock_merge = mocker.patch.object(
-            engine,
-            "_merge_hocr_pages",
+        # Mock merge_hocr_pages
+        mock_merge = mocker.patch(
+            "ocrbridge.engines.easyocr.engine.merge_hocr_pages",
             return_value="<hocr>merged</hocr>",
         )
 
@@ -271,17 +270,17 @@ class TestProcessPDF:
         result = engine._process_pdf(pdf_path, params)
 
         assert result == "<hocr>merged</hocr>"
-        mock_merge.assert_called_once_with(page_hocrs)
+        mock_merge.assert_called_once_with(page_hocrs, system_name="easyocr")
 
     def test_process_pdf_conversion_failure(self, mocker: Any, tmp_path: Path) -> None:
         """Test _process_pdf raises error on PDF conversion failure."""
         engine = EasyOCREngine()
         engine.reader = MagicMock()
 
-        # Mock pdf2image to raise exception
+        # Mock convert_pdf_to_images to raise exception
         mocker.patch(
-            "ocrbridge.engines.easyocr.engine.pdf2image.convert_from_path",
-            side_effect=Exception("PDF error"),
+            "ocrbridge.engines.easyocr.engine.convert_pdf_to_images",
+            side_effect=OCRProcessingError("PDF conversion failed"),
         )
 
         pdf_path = tmp_path / "test.pdf"
@@ -301,7 +300,7 @@ class TestProcessPDF:
 
         mock_image = Image.new("RGB", (800, 600), color="white")
         mocker.patch(
-            "ocrbridge.engines.easyocr.engine.pdf2image.convert_from_path",
+            "ocrbridge.engines.easyocr.engine.convert_pdf_to_images",
             return_value=[mock_image],
         )
 
@@ -314,52 +313,6 @@ class TestProcessPDF:
             engine._process_pdf(pdf_path, params)
 
         assert "reader is not initialized" in str(exc_info.value)
-
-
-class TestMergeHOCRPages:
-    """Test suite for _merge_hocr_pages method."""
-
-    def test_merge_single_page(self) -> None:
-        """Test _merge_hocr_pages with single page returns same content."""
-        engine = EasyOCREngine()
-        page_hocr = "<html><body><div>Page 1</div></body></html>"
-
-        # When there's only one page, it's returned as-is in process methods
-        # This tests the merge logic directly
-        result = engine._merge_hocr_pages([page_hocr])
-
-        assert "<div>Page 1</div>" in result
-        assert "easyocr" in result
-
-    def test_merge_multiple_pages(self) -> None:
-        """Test _merge_hocr_pages combines multiple pages correctly."""
-        engine = EasyOCREngine()
-
-        page1 = "<html><body><div>Page 1</div></body></html>"
-        page2 = "<html><body><div>Page 2</div></body></html>"
-        page3 = "<html><body><div>Page 3</div></body></html>"
-
-        result = engine._merge_hocr_pages([page1, page2, page3])
-
-        assert "<div>Page 1</div>" in result
-        assert "<div>Page 2</div>" in result
-        assert "<div>Page 3</div>" in result
-        assert result.startswith('<?xml version="1.0"')
-        assert "easyocr" in result
-
-    def test_merge_preserves_structure(self) -> None:
-        """Test _merge_hocr_pages creates valid HOCR structure."""
-        engine = EasyOCREngine()
-
-        page1 = "<html><body><div class='ocr_page'>Page 1</div></body></html>"
-        result = engine._merge_hocr_pages([page1])
-
-        assert '<?xml version="1.0"' in result
-        assert "<html" in result
-        assert "<head>" in result
-        assert "<body>" in result
-        assert "</body>" in result
-        assert "</html>" in result
 
 
 class TestToHOCR:

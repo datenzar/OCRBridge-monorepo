@@ -5,16 +5,15 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence, cast
 
 import numpy as np
-import pdf2image as _pdf2image
 from PIL import Image
 
 from ocrbridge.core import OCREngine, OCRProcessingError, UnsupportedFormatError
 from ocrbridge.core.models import OCREngineParams
+from ocrbridge.core.utils.hocr import merge_hocr_pages
+from ocrbridge.core.utils.pdf import convert_pdf_to_images
 
 from . import hocr as hocr_utils
 from .models import EasyOCRParams
-
-pdf2image = cast(Any, _pdf2image)
 
 EasyOCRReader = Any
 Point = tuple[float, float]
@@ -202,13 +201,7 @@ class EasyOCREngine(OCREngine):
             HOCR XML string with all pages combined
         """
         # Convert PDF to images
-        try:
-            images = cast(
-                list[Image.Image],
-                pdf2image.convert_from_path(str(pdf_path), dpi=300, thread_count=2),
-            )
-        except Exception as e:
-            raise OCRProcessingError(f"PDF conversion failed: {str(e)}")
+        images = convert_pdf_to_images(pdf_path, dpi=300)
 
         # Process each page
         if self.reader is None:
@@ -246,40 +239,9 @@ class EasyOCREngine(OCREngine):
         if len(page_hocr_list) == 1:
             hocr_content: str = page_hocr_list[0]
         else:
-            hocr_content = self._merge_hocr_pages(page_hocr_list)
+            hocr_content = merge_hocr_pages(page_hocr_list, system_name="easyocr")
 
         return hocr_content
-
-    def _merge_hocr_pages(self, page_hocr_list: list[str]) -> str:
-        """Merge multiple HOCR pages into single document.
-
-        Args:
-            page_hocr_list: List of HOCR XML strings, one per page
-
-        Returns:
-            Combined HOCR XML string
-        """
-        # Extract body content from each page and combine
-        combined_body = ""
-        for page_hocr in page_hocr_list:
-            # Extract content between <body> tags
-            start = page_hocr.find("<body>")
-            end = page_hocr.find("</body>")
-            if start != -1 and end != -1:
-                combined_body += page_hocr[start + 6 : end]
-
-        # Wrap in complete HOCR structure
-        hocr_template = f"""<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<meta name="ocr-system" content="easyocr" />
-</head>
-<body>{combined_body}</body>
-</html>"""
-
-        return hocr_template
 
     def _to_hocr(self, easyocr_results: EasyOCRResults, image_path: Path) -> str:
         """Convert EasyOCR results to HOCR XML format.
