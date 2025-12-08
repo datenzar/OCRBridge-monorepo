@@ -475,14 +475,16 @@ wheels = [
 
 [[package]]
 name = "ocrbridge-core"
-version = "2.0.0"
+version = "3.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "pdf2image" },
+    { name = "pillow" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ac/ed/af98ad6d9c57f277e414dc8962a44341a5726c8e15a120ea8fd15fc0d331/ocrbridge_core-2.0.0.tar.gz", hash = "sha256:e763390d44f313050686756056a62458ce4a44ba89760b395a5389add7b70a64", size = 94244, upload-time = "2025-11-29T17:26:05.38Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/40/f1/ecf0ad67943cfdc34b18f57b287630dbed00c85f1f4a513d9d89b53e2846/ocrbridge_core-3.1.0.tar.gz", hash = "sha256:dabf79f1b6320db660b049a9dbbc97c5260936074a69f6ddddb96a330e2266db", size = 103718, upload-time = "2025-12-05T08:00:17.466Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f1/2a/f64fada140f7a2c0e750a89ea59df9a46299b2cdc697fe35d1381754d1da/ocrbridge_core-2.0.0-py3-none-any.whl", hash = "sha256:2666b0c9489f3b92108502971c503db31a2eca106836ade6259724ec47bd174f", size = 12290, upload-time = "2025-11-29T17:26:03.823Z" },
+    { url = "https://files.pythonhosted.org/packages/83/d4/e23fc25c4002e003b681b69504c8a3217882f354539d31bc4fa8b6b2be61/ocrbridge_core-3.1.0-py3-none-any.whl", hash = "sha256:3b363c3a0718218da762fc7928f57f509fa177161ee236bedace4fc6e3fcf4aa", size = 11490, upload-time = "2025-12-05T08:00:16.109Z" },
 ]
 
 [[package]]
@@ -514,7 +516,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "hatchling", marker = "extra == 'build'" },
-    { name = "ocrbridge-core", specifier = ">=2.0.0" },
+    { name = "ocrbridge-core", specifier = ">=3.1.0" },
     { name = "ocrmac", specifier = ">=0.2.2" },
     { name = "pdf2image", specifier = ">=1.17.0" },
     { name = "pillow", specifier = ">=10.0.0" },
