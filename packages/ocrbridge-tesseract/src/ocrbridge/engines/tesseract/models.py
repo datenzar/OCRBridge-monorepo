@@ -1,11 +1,14 @@
 """Tesseract OCR engine parameter models."""
 
 import functools
+import logging
 import subprocess
 
 from pydantic import Field, field_validator
 
 from ocrbridge.core.models import OCREngineParams
+
+logger = logging.getLogger(__name__)
 from ocrbridge.core.validation import (
     PATTERN_TESSERACT_LANG_SEGMENT,
     normalize_lowercase,
@@ -57,11 +60,34 @@ def get_installed_languages() -> set[str]:
             installed.update(DEFAULT_TESSERACT_LANGUAGES)
             return installed
         else:
-            # Fallback to common languages
+            # Tesseract binary found but returned error
+            logger.warning(
+                "Tesseract command failed (exit code %d): %s. Using default languages.",
+                result.returncode,
+                result.stderr.strip() or "No error message",
+            )
             return set(DEFAULT_TESSERACT_LANGUAGES)
 
-    except (FileNotFoundError, subprocess.TimeoutExpired, Exception):
-        # Fallback to default languages
+    except FileNotFoundError:
+        # Tesseract binary not found
+        logger.warning(
+            "Tesseract binary not found. Install Tesseract OCR to enable language detection. "
+            "Using default languages: %s",
+            ", ".join(sorted(DEFAULT_TESSERACT_LANGUAGES)),
+        )
+        return set(DEFAULT_TESSERACT_LANGUAGES)
+
+    except subprocess.TimeoutExpired:
+        logger.warning(
+            "Tesseract language detection timed out. Using default languages."
+        )
+        return set(DEFAULT_TESSERACT_LANGUAGES)
+
+    except Exception as e:
+        logger.warning(
+            "Unexpected error detecting Tesseract languages: %s. Using default languages.",
+            str(e),
+        )
         return set(DEFAULT_TESSERACT_LANGUAGES)
 
 
