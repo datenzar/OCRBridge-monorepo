@@ -59,6 +59,16 @@ class EasyOCREngine(OCREngine):
     Uses deep learning models for multilingual OCR with automatic GPU acceleration.
     GPU is automatically detected and used when available, with graceful fallback to CPU.
     Supports 80+ languages with superior accuracy for Asian scripts.
+
+    Thread Safety:
+        This engine is NOT thread-safe. The internal EasyOCR Reader instance is shared
+        and reused across calls for performance. Concurrent calls to process() from
+        multiple threads may cause race conditions or undefined behavior.
+
+        For thread-safe usage, either:
+        - Use a separate EasyOCREngine instance per thread
+        - Serialize access to process() using external locking
+        - Use the ocr-service which handles concurrency via async/await with to_thread()
     """
 
     def __init__(self):
@@ -149,6 +159,19 @@ class EasyOCREngine(OCREngine):
 
         # Create or recreate reader if languages changed
         if self.reader is None or self._current_languages != easyocr_params.languages:
+            # Release old reader to free GPU memory before creating new one
+            if self.reader is not None:
+                del self.reader
+                self.reader = None
+                # Clear GPU cache if available
+                try:
+                    import torch
+
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                except ImportError:
+                    pass
+
             self.reader = self._create_reader(easyocr_params.languages)
             self._current_languages = easyocr_params.languages
 
@@ -223,17 +246,13 @@ class EasyOCREngine(OCREngine):
             )
 
             # Convert results to HOCR for this page
-            # Save image temporarily to get dimensions
-            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_file:
-                temp_path = Path(tmp_file.name)
+            # Save image temporarily to get dimensions using secure TemporaryDirectory
+            with tempfile.TemporaryDirectory() as temp_dir:
+                temp_path = Path(temp_dir) / "page.png"
                 image.save(temp_path, format="PNG")
-
-            try:
                 page_hocr = self._to_hocr(results, temp_path)
                 page_hocr_list.append(page_hocr)
-            finally:
-                # Clean up temp file
-                temp_path.unlink(missing_ok=True)
+            # Cleanup happens automatically when context manager exits
 
         # Merge all pages into single HOCR document
         if len(page_hocr_list) == 1:

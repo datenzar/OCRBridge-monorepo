@@ -5,6 +5,7 @@ This module handles the conversion of EasyOCR's native output format
 """
 
 from typing import Sequence, TypedDict
+from xml.sax.saxutils import escape as xml_escape
 
 Point2D = tuple[float, float]
 BBox = tuple[int, int, int, int]
@@ -80,8 +81,13 @@ def _group_words_into_lines(easyocr_results: Sequence[EasyOCRResult]) -> list[Li
     heights.sort()
     median_height = heights[len(heights) // 2]
 
+    # Guard against zero height (edge case with certain image types)
+    if median_height == 0:
+        median_height = 1.0  # Use minimum default
+
     # Threshold: words are on same line if y_centers within 50% of median height
-    line_threshold = median_height * 0.5
+    # Use max to ensure a minimum threshold for very small text
+    line_threshold = max(1.0, median_height * 0.5)
 
     # Sort words by vertical position (top to bottom)
     words.sort(key=lambda w: w["y_center"])
@@ -172,14 +178,9 @@ def to_hocr(easyocr_results: Sequence[EasyOCRResult], image_width: int, image_he
             # Convert confidence (0.0-1.0) to percentage (0-100)
             conf_percent = int(word_data["confidence"] * 100)
 
-            # Escape text for XML
-            escaped_text = (
-                word_data["text"]
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace('"', "&quot;")
-                .replace("'", "&apos;")
+            # Escape text for XML using stdlib (more robust than manual replacement)
+            escaped_text = xml_escape(
+                word_data["text"], {'"': "&quot;", "'": "&apos;"}
             )
 
             # Create HOCR word element
