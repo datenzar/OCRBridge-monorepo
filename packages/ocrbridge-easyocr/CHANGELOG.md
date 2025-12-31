@@ -2,6 +2,41 @@
 
 <!-- version list -->
 
+## v3.1.1 (2025-12-31)
+
+### Bug Fixes
+
+- Address critical code review issues
+  ([#28](https://github.com/OCRBridge/ocrbridge-easyocr/pull/28),
+  [`50ab215`](https://github.com/OCRBridge/ocrbridge-easyocr/commit/50ab2154b0cda0a7f63c05f5acb4f5e95a0da5e0))
+
+### Chores
+
+- Add renovate configuration for non-major updates
+  ([#22](https://github.com/OCRBridge/ocrbridge-easyocr/pull/22),
+  [`0061b62`](https://github.com/OCRBridge/ocrbridge-easyocr/commit/0061b622d3eb848af0fc1d1f322bd51422c0e3a4))
+
+- **deps**: Update actions/download-artifact action to v7
+  ([#24](https://github.com/OCRBridge/ocrbridge-easyocr/pull/24),
+  [`f6a1919`](https://github.com/OCRBridge/ocrbridge-easyocr/commit/f6a19199f8acea3aa35a295fe49f4f83cebf1c38))
+
+- **deps**: Update actions/upload-artifact action to v6
+  ([#25](https://github.com/OCRBridge/ocrbridge-easyocr/pull/25),
+  [`cc6934e`](https://github.com/OCRBridge/ocrbridge-easyocr/commit/cc6934e657a6a8f78ed76c0af685c0923fe35cde))
+
+- **deps**: Update dependency uv to v0.9.16
+  ([#21](https://github.com/OCRBridge/ocrbridge-easyocr/pull/21),
+  [`faf8fa2`](https://github.com/OCRBridge/ocrbridge-easyocr/commit/faf8fa2642a1db75622a6f52398f0b0d5590b6fd))
+
+- **deps**: Update dependency uv to v0.9.17
+  ([#23](https://github.com/OCRBridge/ocrbridge-easyocr/pull/23),
+  [`45b942d`](https://github.com/OCRBridge/ocrbridge-easyocr/commit/45b942db06515331ac5e87c6df232080237ce42a))
+
+- **deps**: Update dependency uv to v0.9.18
+  ([#26](https://github.com/OCRBridge/ocrbridge-easyocr/pull/26),
+  [`38ab015`](https://github.com/OCRBridge/ocrbridge-easyocr/commit/38ab015cf1c1b5cbe1e0f2b4112c3e17618aac41))
+
+
 ## v3.1.0 (2025-12-06)
 
 ### Chores
