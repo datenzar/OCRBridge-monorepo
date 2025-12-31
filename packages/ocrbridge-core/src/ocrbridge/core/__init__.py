@@ -60,4 +60,4 @@ __all__ = [
     "PATTERN_FILE_EXTENSION",
 ]
 
-__version__ = "2.0.0"
+__version__ = "3.1.0"

@@ -8,14 +8,16 @@ import re
 import xml.etree.ElementTree as ET
 from typing import NamedTuple
 
+from ocrbridge.core.exceptions import OCRBridgeError
 
-class HOCRParseError(Exception):
+
+class HOCRParseError(OCRBridgeError):
     """Raised when HOCR parsing fails."""
 
     pass
 
 
-class HOCRValidationError(Exception):
+class HOCRValidationError(OCRBridgeError):
     """Raised when HOCR validation fails."""
 
     pass
@@ -105,8 +107,8 @@ def extract_bbox(element_title: str) -> tuple[int, int, int, int] | None:
     """
     match = re.search(r"bbox (\d+) (\d+) (\d+) (\d+)", element_title)
     if match:
-        coords = match.groups()
-        return (int(coords[0]), int(coords[1]), int(coords[2]), int(coords[3]))
+        x0, y0, x1, y1 = match.groups()
+        return (int(x0), int(y0), int(x1), int(y1))
     return None
 
 
@@ -121,12 +123,14 @@ def merge_hocr_pages(page_hocr_list: list[str], system_name: str = "unknown") ->
         Combined HOCR XML string.
     """
     combined_body = ""
+    body_open_tag = "<body>"
+    body_close_tag = "</body>"
     for page_hocr in page_hocr_list:
         # Extract content between <body> tags
-        start = page_hocr.find("<body>")
-        end = page_hocr.find("</body>")
+        start = page_hocr.find(body_open_tag)
+        end = page_hocr.find(body_close_tag)
         if start != -1 and end != -1:
-            combined_body += page_hocr[start + 6 : end]
+            combined_body += page_hocr[start + len(body_open_tag) : end]
 
     return f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
