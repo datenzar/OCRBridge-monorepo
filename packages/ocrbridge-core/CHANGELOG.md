@@ -2,6 +2,58 @@
 
 <!-- version list -->
 
+## v3.1.1 (2025-12-31)
+
+### Bug Fixes
+
+- Address code review issues
+  ([`3c7e7c9`](https://github.com/OCRBridge/ocrbridge-core/commit/3c7e7c9d7f62e9444b73fb3d5a5066cdfda5ae69))
+
+### Chores
+
+- **deps**: Add group:allNonMajor to renovate configuration
+  ([`1bc1563`](https://github.com/OCRBridge/ocrbridge-core/commit/1bc15630679a79e03edb06cc2f3d40d2d8cbf36e))
+
+- **deps**: Update actions/checkout action to v6.0.1
+  ([`ff416e7`](https://github.com/OCRBridge/ocrbridge-core/commit/ff416e70cb36bb9f50cd22206d38af825b717ee0))
+
+- **deps**: Update all non-major dependencies to v0.9.17
+  ([`6d6b6bd`](https://github.com/OCRBridge/ocrbridge-core/commit/6d6b6bdb5e955834bbd9e309e9c2500fad6e143c))
+
+- **deps**: Update all non-major dependencies to v0.9.18
+  ([`1e04c5b`](https://github.com/OCRBridge/ocrbridge-core/commit/1e04c5bdf3264e65dc181d584999eb16195a159a))
+
+- **deps**: Update astral-sh/setup-uv action to v7.1.5
+  ([`7c21940`](https://github.com/OCRBridge/ocrbridge-core/commit/7c2194036e03258cfb4398146f83fe2f17b44d43))
+
+- **deps**: Update astral-sh/setup-uv action to v7.1.6
+  ([`3717de7`](https://github.com/OCRBridge/ocrbridge-core/commit/3717de7497e80c01bf5e9c5fb4ec559983679ce6))
+
+- **deps**: Update commitlint monorepo to v20.2.0
+  ([`e0e09ce`](https://github.com/OCRBridge/ocrbridge-core/commit/e0e09ce7ffa85d457037dfb5c7a015423f844cf5))
+
+- **deps**: Update dependency astral-sh/uv to v0.9.15
+  ([`6d8d0f0`](https://github.com/OCRBridge/ocrbridge-core/commit/6d8d0f045a064b72b5f10fac51c0400cbbdc50ee))
+
+- **deps**: Update dependency astral-sh/uv to v0.9.16
+  ([`3f3f946`](https://github.com/OCRBridge/ocrbridge-core/commit/3f3f94634e7ba353aa680f53e09254cafe817b6b))
+
+- **deps**: Update dependency uv to v0.9.15
+  ([`b7e164a`](https://github.com/OCRBridge/ocrbridge-core/commit/b7e164a2f4a297955691e79d35b455d5a8985aad))
+
+- **deps**: Update dependency uv to v0.9.16
+  ([`91163fa`](https://github.com/OCRBridge/ocrbridge-core/commit/91163fa9e49b94981aa6d2960260103ff3dc1da8))
+
+- **deps**: Update github artifact actions
+  ([`d7a9171`](https://github.com/OCRBridge/ocrbridge-core/commit/d7a91717a59d6dc11ef7c30b014a13cf5ab0d6f1))
+
+- **deps**: Update python docker tag to v3.14.1
+  ([`491c84e`](https://github.com/OCRBridge/ocrbridge-core/commit/491c84ece6c4e6d10bb591a8430b95a42e3cc5ec))
+
+- **deps**: Update python docker tag to v3.14.2
+  ([`d18a5bd`](https://github.com/OCRBridge/ocrbridge-core/commit/d18a5bd8bdfd1fd1a64fd9b6db654a6e040117a8))
+
+
 ## v3.1.0 (2025-12-05)
 
 ### Bug Fixes
