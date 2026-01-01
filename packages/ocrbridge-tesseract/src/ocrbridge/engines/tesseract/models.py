@@ -7,14 +7,14 @@ import subprocess
 from pydantic import Field, field_validator
 
 from ocrbridge.core.models import OCREngineParams
-
-logger = logging.getLogger(__name__)
 from ocrbridge.core.validation import (
     PATTERN_TESSERACT_LANG_SEGMENT,
     normalize_lowercase,
     validate_list_length,
     validate_regex_pattern,
 )
+
+logger = logging.getLogger(__name__)
 
 # Default fallback languages if tesseract --list-langs fails
 DEFAULT_TESSERACT_LANGUAGES = {
@@ -78,9 +78,7 @@ def get_installed_languages() -> set[str]:
         return set(DEFAULT_TESSERACT_LANGUAGES)
 
     except subprocess.TimeoutExpired:
-        logger.warning(
-            "Tesseract language detection timed out. Using default languages."
-        )
+        logger.warning("Tesseract language detection timed out. Using default languages.")
         return set(DEFAULT_TESSERACT_LANGUAGES)
 
     except Exception as e:
