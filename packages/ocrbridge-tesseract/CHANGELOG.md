@@ -2,6 +2,46 @@
 
 <!-- version list -->
 
+## v3.0.1 (2026-01-01)
+
+### Bug Fixes
+
+- Address code review issues
+  ([`b5348b0`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/b5348b0dbaee09e411f7276a893a0bccfcbda6a0))
+
+### Chores
+
+- Add renovate configuration for non-major updates
+  ([`b68316e`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/b68316e2b584b912067e1793d802b7268e34b304))
+
+- Update uv dependency to version 0.9.21 and improve logger placement
+  ([`44bbda3`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/44bbda3db9e1a12419d5ebc97a2900558a4d9fe2))
+
+- **deps**: Update actions/download-artifact action to v7
+  ([`9fd1fea`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/9fd1feaf3c34947faf4a7393346f1ed600c37ba6))
+
+- **deps**: Update actions/upload-artifact action to v6
+  ([`7998fd7`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/7998fd7bc374456943626f758d17ddc15e27677b))
+
+- **deps**: Update dependency @commitlint/cli to v20.3.0
+  ([`a772068`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/a77206860b22d75b3344b56c77a86b495cd0636a))
+
+- **deps**: Update dependency @commitlint/config-conventional to v20.3.0
+  ([`2dad5d8`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/2dad5d897c973968176e5fff64779ed14fab0f92))
+
+- **deps**: Update dependency uv to v0.9.16
+  ([`f7222da`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/f7222da8d9d238290036a1f44c1bfc7c387993dc))
+
+- **deps**: Update dependency uv to v0.9.17
+  ([`b29fbe7`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/b29fbe7ac90c68c2a506c4c530be2d824c857d29))
+
+- **deps**: Update dependency uv to v0.9.18
+  ([`e3382f0`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/e3382f0136e59bfd8c80bf77d9fdaaea445a5914))
+
+- **deps**: Update dependency uv to v0.9.21
+  ([`b214ceb`](https://github.com/OCRBridge/ocrbridge-tesseract/commit/b214cebe06adfdb96aee6bc340a9f37a4c3f74c1))
+
+
 ## v3.0.0 (2025-12-05)
 
 ### Chores
