@@ -179,9 +179,7 @@ def to_hocr(easyocr_results: Sequence[EasyOCRResult], image_width: int, image_he
             conf_percent = int(word_data["confidence"] * 100)
 
             # Escape text for XML using stdlib (more robust than manual replacement)
-            escaped_text = xml_escape(
-                word_data["text"], {'"': "&quot;", "'": "&apos;"}
-            )
+            escaped_text = xml_escape(word_data["text"], {'"': "&quot;", "'": "&apos;"})
 
             # Create HOCR word element
             word_bbox = word_data["bbox"]
