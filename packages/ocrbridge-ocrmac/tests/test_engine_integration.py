@@ -1,6 +1,8 @@
 """Integration tests for ocrmac engine (requires macOS and ocrmac installed)."""
 
 import platform
+import shutil
+import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Callable
@@ -348,6 +350,44 @@ class TestHOCROutput:
         assert y_min == 0, "Page bbox y_min should be 0"
         assert x_max == img_width, f"Page bbox x_max ({x_max}) != image width ({img_width})"
         assert y_max == img_height, f"Page bbox y_max ({y_max}) != image height ({img_height})"
+
+    def test_pdf_hocr_is_valid_for_pdfocr(
+        self, engine: OcrmacEngine, sample_pdf_en: Path, tmp_path: Path
+    ) -> None:
+        """Test that generated PDF hOCR is accepted by pdfocr."""
+        pdfocr_path = shutil.which("pdfocr")
+        if pdfocr_path is None:
+            pytest.skip("pdfocr is not installed")
+
+        hocr = engine.process(sample_pdf_en)
+
+        hocr_path = tmp_path / "output.hocr"
+        output_pdf = tmp_path / "output.pdf"
+        hocr_path.write_text(hocr, encoding="utf-8")
+
+        completed = subprocess.run(
+            [
+                pdfocr_path,
+                "-hocr",
+                str(hocr_path),
+                "-pdf",
+                str(sample_pdf_en),
+                "-output",
+                str(output_pdf),
+                "-strict",
+                "-overwrite",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        assert completed.returncode == 0, (
+            f"pdfocr failed with exit code {completed.returncode}\n"
+            f"stdout: {completed.stdout}\n"
+            f"stderr: {completed.stderr}"
+        )
+        assert output_pdf.exists(), "pdfocr did not produce output PDF"
 
 
 @pytest.mark.integration

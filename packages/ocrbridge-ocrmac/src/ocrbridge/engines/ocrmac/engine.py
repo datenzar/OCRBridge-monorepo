@@ -20,6 +20,7 @@ from ocrbridge.core import (  # type: ignore[reportMissingTypeStubs]
 from .models import OcrmacParams, RecognitionLevel  # type: ignore[reportMissingTypeStubs]
 
 Annotation = tuple[str, float, Tuple[float, float, float, float]]
+AbsoluteWord = tuple[int, str, int, int, int, int, int]
 
 
 class OcrmacEngine(OCREngine):
@@ -246,6 +247,61 @@ class OcrmacEngine(OCREngine):
 <body>{combined_body}</body>
 </html>"""
 
+    def _to_absolute_word(
+        self,
+        idx: int,
+        annotation: Annotation,
+        image_width: int,
+        image_height: int,
+    ) -> AbsoluteWord:
+        """Convert an OCR annotation to absolute HOCR word data."""
+        text, confidence, bbox = annotation
+
+        x_min = int(bbox[0] * image_width)
+        x_max = int((bbox[0] + bbox[2]) * image_width)
+        y_min = int((1.0 - bbox[1] - bbox[3]) * image_height)
+        y_max = int((1.0 - bbox[1]) * image_height)
+
+        return (idx, text, int(confidence * 100), x_min, y_min, x_max, y_max)
+
+    def _group_words_into_lines(self, words: Sequence[AbsoluteWord]) -> list[list[AbsoluteWord]]:
+        """Group absolute-position words into visual lines."""
+        if not words:
+            return []
+
+        sorted_words = sorted(words, key=lambda word: (word[4], word[3]))
+        heights = [max(1, word[6] - word[4]) for word in sorted_words]
+        average_height = sum(heights) / len(heights)
+        y_tolerance = max(5, int(average_height * 0.6))
+
+        lines: list[list[AbsoluteWord]] = []
+        current_line: list[AbsoluteWord] = []
+        line_center = 0.0
+
+        for word in sorted_words:
+            y_center = (word[4] + word[6]) / 2
+
+            if not current_line:
+                current_line.append(word)
+                line_center = y_center
+                continue
+
+            if abs(y_center - line_center) <= y_tolerance:
+                current_line.append(word)
+                line_center = sum((item[4] + item[6]) / 2 for item in current_line) / len(
+                    current_line
+                )
+                continue
+
+            lines.append(sorted(current_line, key=lambda item: item[3]))
+            current_line = [word]
+            line_center = y_center
+
+        if current_line:
+            lines.append(sorted(current_line, key=lambda item: item[3]))
+
+        return lines
+
     def _convert_to_hocr(
         self,
         annotations: Sequence[Annotation],
@@ -281,29 +337,41 @@ class OcrmacEngine(OCREngine):
             },
         )
 
-        # Convert annotations to words
-        for idx, annotation in enumerate(annotations, start=1):
-            text, confidence, bbox = annotation
+        absolute_words = [
+            self._to_absolute_word(idx, annotation, image_width, image_height)
+            for idx, annotation in enumerate(annotations, start=1)
+        ]
+        lines = self._group_words_into_lines(absolute_words)
 
-            # Convert relative bbox to absolute pixels (flip Y-axis for top-left origin)
-            x_min = int(bbox[0] * image_width)
-            x_max = int((bbox[0] + bbox[2]) * image_width)
-            y_min = int((1.0 - bbox[1] - bbox[3]) * image_height)
-            y_max = int((1.0 - bbox[1]) * image_height)
+        word_counter = 1
+        for line_idx, line_words in enumerate(lines, start=1):
+            line_x_min = min(word[3] for word in line_words)
+            line_y_min = min(word[4] for word in line_words)
+            line_x_max = max(word[5] for word in line_words)
+            line_y_max = max(word[6] for word in line_words)
 
-            # Create word element
-            word_elem = ET.SubElement(
+            line_elem = ET.SubElement(
                 page,
                 "span",
                 attrib={
-                    "class": "ocrx_word",
-                    "id": f"word_1_{idx}",
-                    "title": (
-                        f"bbox {x_min} {y_min} {x_max} {y_max}; x_wconf {int(confidence * 100)}"
-                    ),
+                    "class": "ocr_line",
+                    "id": f"line_1_{line_idx}",
+                    "title": f"bbox {line_x_min} {line_y_min} {line_x_max} {line_y_max}",
                 },
             )
-            word_elem.text = text
+
+            for _original_idx, text, confidence, x_min, y_min, x_max, y_max in line_words:
+                word_elem = ET.SubElement(
+                    line_elem,
+                    "span",
+                    attrib={
+                        "class": "ocrx_word",
+                        "id": f"word_1_{word_counter}",
+                        "title": f"bbox {x_min} {y_min} {x_max} {y_max}; x_wconf {confidence}",
+                    },
+                )
+                word_elem.text = text
+                word_counter += 1
 
         # Generate HOCR XML
         xml_declaration = '<?xml version="1.0" encoding="UTF-8"?>'

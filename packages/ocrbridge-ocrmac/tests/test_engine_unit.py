@@ -262,6 +262,36 @@ class TestHOCRConversion:
         assert words[2].text == "Test"
         assert words[2].attrib.get("id") == "word_1_3"
 
+    def test_convert_to_hocr_lines(self) -> None:
+        """Test HOCR line container elements."""
+        engine = OcrmacEngine()
+        params = OcrmacParams()
+
+        annotations = [
+            ("Hello", 0.95, (0.1, 0.8, 0.15, 0.1)),
+            ("World", 0.90, (0.3, 0.8, 0.15, 0.1)),
+            ("Test", 0.85, (0.1, 0.5, 0.1, 0.08)),
+        ]
+
+        hocr = engine._convert_to_hocr(annotations, 1000, 800, params)
+        root = ET.fromstring(hocr)
+
+        lines = root.findall(".//{http://www.w3.org/1999/xhtml}span[@class='ocr_line']")
+        assert len(lines) == 2
+
+        first_line_words = lines[0].findall(
+            "{http://www.w3.org/1999/xhtml}span[@class='ocrx_word']"
+        )
+        assert [word.text for word in first_line_words] == ["Hello", "World"]
+
+        second_line_words = lines[1].findall(
+            "{http://www.w3.org/1999/xhtml}span[@class='ocrx_word']"
+        )
+        assert [word.text for word in second_line_words] == ["Test"]
+
+        assert "bbox 100 79 449 159" in lines[0].attrib.get("title", "")
+        assert "bbox 100 336 200 400" in lines[1].attrib.get("title", "")
+
     def test_coordinate_transformation(self, bbox_parser: Callable[[str], dict[str, Any]]) -> None:
         """Test coordinate transformation from ocrmac to HOCR format.
 

@@ -1,0 +1,43 @@
+[tasks.help]
+description = "Show available tasks"
+run = "mise tasks"
+
+[tasks.install]
+description = "Sync dependencies (includes dev extras)"
+run = "uv sync --extra dev"
+
+[tasks.lint]
+description = "Run Ruff lint checks"
+depends = ["install"]
+run = "uv run ruff check src tests"
+
+[tasks.format]
+description = "Run Ruff formatter"
+depends = ["install"]
+run = "uv run ruff format src tests"
+
+[tasks.format-check]
+description = "Verify Ruff formatting without modifying files"
+depends = ["install"]
+run = "uv run ruff format --check src tests"
+
+[tasks.typecheck]
+description = "Run pyright type checking"
+depends = ["install"]
+run = "uv run pyright"
+
+[tasks.test]
+description = "Run pytest"
+depends = ["install"]
+run = "uv run pytest"
+
+[tasks.check]
+description = "Run lint + typecheck + test"
+depends = ["lint", "typecheck", "test"]
+
+[tasks.all]
+description = "Run check + format"
+depends = ["check", "format"]
+
+[tools]
+go = "1.25"

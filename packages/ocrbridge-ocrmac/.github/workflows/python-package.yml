@@ -27,15 +27,19 @@ jobs:
     - uses: yezz123/setup-uv@v4 
       with:
         uv-version: "0.9.3"
+    - name: Set up mise
+      uses: jdx/mise-action@v3
+      with:
+        install: true
+        cache: true
+        cache_key_prefix: mise-v1-py${{ matrix.python-version }}
     - name: Install Poppler
       run: brew install poppler
-    - name: Install dependencies
-      run: make install
-    - name: Lint with Ruff
-      run: make lint
+    - name: Install pdfocr
+      run: |
+        go install github.com/gardar/ocrchestra/cmd/pdfocr@latest
+        echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+    - name: Lint, type check, and test
+      run: mise run check
     - name: Verify formatting
-      run: make format
-    - name: Type check with pyright
-      run: make typecheck
-    - name: Test with pytest
-      run: make test
+      run: mise run format-check
