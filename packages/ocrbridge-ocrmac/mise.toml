@@ -45,6 +45,6 @@ depends = ["install"]
 run = "uv run prek run conventional-commits-ci --stage manual"
 
 [tools]
-python = "{{ get_env(name='PYTHON_VERSION', default='3.11') }}"
-uv = "0.9.18"
-go = "1.25"
+python = "3.14.3"
+uv = "0.10.9"
+go = "1.26.1"
