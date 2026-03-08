@@ -145,7 +145,7 @@ mise run lint && mise run typecheck && mise run test
 ```
 
 ## Commit and PR Rules
-- Conventional Commits are enforced in CI (`commitlint`)
+- Conventional Commits are enforced in CI (`prek` + `gitlint`)
 - Common prefixes: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
 - Commit body max line length rule: `150`
 

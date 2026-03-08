@@ -39,5 +39,12 @@ depends = ["lint", "typecheck", "test"]
 description = "Run check + format"
 depends = ["check", "format"]
 
+[tasks.commit-check]
+description = "Run Conventional Commit checks via prek"
+depends = ["install"]
+run = "uv run prek run conventional-commits-ci --stage manual"
+
 [tools]
+python = "{{ get_env(name='PYTHON_VERSION', default='3.11') }}"
+uv = "0.9.18"
 go = "1.25"

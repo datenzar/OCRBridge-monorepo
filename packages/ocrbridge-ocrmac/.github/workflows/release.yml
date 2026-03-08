@@ -11,6 +11,7 @@ jobs:
     permissions:
       contents: read
     env:
+      PYTHON_VERSION: "3.11"
       dist_artifacts_name: dist
       dist_artifacts_dir: dist
       lock_file_artifact: uv.lock
@@ -23,8 +24,13 @@ jobs:
       - name: Setup | Force correct release branch on workflow sha
         run: git checkout -B ${{ github.ref_name }}
 
-      - name: Setup | Install uv
-        uses: asdf-vm/actions/install@1902764435ca0dd2f3388eea723a4f92a4eb8302  # v4.0.2
+      - name: Setup | Install mise tools
+        uses: jdx/mise-action@v3
+        with:
+          install: true
+          cache: true
+          cache_key_prefix: mise-v1-release-build
+          install_args: python uv
 
       - name: Install poppler (macOS)
         run: brew install poppler
@@ -68,6 +74,8 @@ jobs:
   test-e2e:
     needs: build
     runs-on: macos-latest
+    env:
+      PYTHON_VERSION: "3.11"
     steps:
       - name: Setup | Checkout Repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
@@ -86,8 +94,13 @@ jobs:
       - name: Install Poppler (macOS)
         run: brew install poppler
 
-      - name: Setup | Install uv
-        uses: asdf-vm/actions/install@1902764435ca0dd2f3388eea723a4f92a4eb8302  # v4.0.2
+      - name: Setup | Install mise tools
+        uses: jdx/mise-action@v3
+        with:
+          install: true
+          cache: true
+          cache_key_prefix: mise-v1-release-test
+          install_args: python uv
 
       - name: Setup | Install Python & Project dependencies
         run: uv sync --extra test
@@ -107,6 +120,8 @@ jobs:
     needs:
       - build
       - test-e2e
+    env:
+      PYTHON_VERSION: "3.11"
 
     if: ${{ needs.build.outputs.new-release-detected == 'true' }}
 
@@ -126,8 +141,13 @@ jobs:
       - name: Setup | Force release branch to be at workflow sha
         run: git reset --hard ${{ github.sha }}
 
-      - name: Setup | Install uv
-        uses: asdf-vm/actions/install@1902764435ca0dd2f3388eea723a4f92a4eb8302  # v4.0.2
+      - name: Setup | Install mise tools
+        uses: jdx/mise-action@v3
+        with:
+          install: true
+          cache: true
+          cache_key_prefix: mise-v1-release-publish
+          install_args: python uv
 
       - name: Setup | Install Python & Project dependencies
         run: uv sync --extra build --extra dev
