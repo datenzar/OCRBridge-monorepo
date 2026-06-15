@@ -1,0 +1,31 @@
+[project]
+name = "ocrbridge-monorepo"
+version = "0.0.0"
+description = "OCRBridge monorepo workspace"
+requires-python = ">=3.10"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "commitizen>=4.0.0",
+    "pre-commit>=3.5.0",
+    "python-semantic-release>=10.5.2",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = [
+    "packages/ocrbridge-core",
+    "packages/ocrbridge-easyocr",
+    "packages/ocrbridge-tesseract",
+    "packages/ocrbridge-ocrmac",
+    "apps/ocr-service",
+]
+
+[tool.uv.sources]
+ocrbridge-core = { workspace = true }
+ocrbridge-easyocr = { workspace = true }
+ocrbridge-tesseract = { workspace = true }
+ocrbridge-ocrmac = { workspace = true }

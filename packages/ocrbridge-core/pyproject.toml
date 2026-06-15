@@ -51,11 +51,17 @@ pythonVersion = "3.10"
 include = ["src", "tests"]
 
 [tool.semantic_release]
+commit_parser = "conventional-monorepo"
+tag_format = "ocrbridge-core-v{version}"
 build_command = """
+    cd ../..
     uv lock --upgrade-package "$PACKAGE_NAME"
     git add uv.lock
-    uv build
+    uv build --package ocrbridge-core
 """
 version_toml = ["pyproject.toml:project.version"]
 
+[tool.semantic_release.commit_parser_options]
+path_filters = ["packages/ocrbridge-core/**"]
+scope_prefix = "ocrbridge-core"
 

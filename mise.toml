@@ -1,0 +1,191 @@
+min_version = "2024.11.1"
+
+[tools]
+python = "3.14.6"
+uv = "0.11.21"
+node = "24"
+go = "1.26.4"
+
+[env]
+_.python.venv = { path = ".venv", create = true }
+
+[tasks.install]
+description = "Install root development tools"
+run = "uv sync --group dev"
+
+[tasks."install:all"]
+description = "Install all workspace packages with development dependencies"
+run = "uv sync --all-packages --group dev --all-extras"
+
+[tasks."install:core"]
+description = "Install ocrbridge-core development dependencies"
+run = "uv sync --package ocrbridge-core --group dev"
+
+[tasks."install:easyocr"]
+description = "Install ocrbridge-easyocr development dependencies"
+run = "uv sync --package ocrbridge-easyocr --group dev"
+
+[tasks."install:tesseract"]
+description = "Install ocrbridge-tesseract development dependencies"
+run = "uv sync --package ocrbridge-tesseract --group dev"
+
+[tasks."install:ocrmac"]
+description = "Install ocrbridge-ocrmac development dependencies"
+run = "uv sync --package ocrbridge-ocrmac --extra dev"
+
+[tasks."install:service"]
+description = "Install ocr-service development dependencies"
+run = "uv sync --package ocr-service --group dev"
+
+[tasks."install:service:all-engines"]
+description = "Install ocr-service with all optional engines"
+run = "uv sync --package ocr-service --group dev --all-extras"
+
+[tasks."install:pdfocr"]
+description = "Install pdfocr CLI for searchable PDF generation"
+run = "go install github.com/gardar/ocrchestra/cmd/pdfocr@latest"
+
+[tasks."lint:core"]
+description = "Run Ruff lint checks for ocrbridge-core"
+run = "uv --directory packages/ocrbridge-core run ruff check src tests"
+
+[tasks."lint:easyocr"]
+description = "Run Ruff lint checks for ocrbridge-easyocr"
+run = "uv --directory packages/ocrbridge-easyocr run ruff check src tests"
+
+[tasks."lint:tesseract"]
+description = "Run Ruff lint checks for ocrbridge-tesseract"
+run = "uv --directory packages/ocrbridge-tesseract run ruff check src tests"
+
+[tasks."lint:ocrmac"]
+description = "Run Ruff lint checks for ocrbridge-ocrmac"
+run = "uv --directory packages/ocrbridge-ocrmac run ruff check src tests"
+
+[tasks."lint:service"]
+description = "Run Ruff lint checks for ocr-service"
+run = "uv --directory apps/ocr-service run ruff check src tests"
+
+[tasks.lint]
+description = "Run Ruff lint checks for all workspace projects"
+depends = ["lint:core", "lint:tesseract", "lint:easyocr", "lint:ocrmac", "lint:service"]
+
+[tasks."format:core"]
+description = "Format ocrbridge-core with Ruff"
+run = "uv --directory packages/ocrbridge-core run ruff format src tests"
+
+[tasks."format:easyocr"]
+description = "Format ocrbridge-easyocr with Ruff"
+run = "uv --directory packages/ocrbridge-easyocr run ruff format src tests"
+
+[tasks."format:tesseract"]
+description = "Format ocrbridge-tesseract with Ruff"
+run = "uv --directory packages/ocrbridge-tesseract run ruff format src tests"
+
+[tasks."format:ocrmac"]
+description = "Format ocrbridge-ocrmac with Ruff"
+run = "uv --directory packages/ocrbridge-ocrmac run ruff format src tests"
+
+[tasks."format:service"]
+description = "Format ocr-service with Ruff"
+run = "uv --directory apps/ocr-service run ruff format src tests"
+
+[tasks.format]
+description = "Format all workspace projects with Ruff"
+depends = ["format:core", "format:tesseract", "format:easyocr", "format:ocrmac", "format:service"]
+
+[tasks."format-check:core"]
+description = "Verify ocrbridge-core formatting"
+run = "uv --directory packages/ocrbridge-core run ruff format --check src tests"
+
+[tasks."format-check:easyocr"]
+description = "Verify ocrbridge-easyocr formatting"
+run = "uv --directory packages/ocrbridge-easyocr run ruff format --check src tests"
+
+[tasks."format-check:tesseract"]
+description = "Verify ocrbridge-tesseract formatting"
+run = "uv --directory packages/ocrbridge-tesseract run ruff format --check src tests"
+
+[tasks."format-check:ocrmac"]
+description = "Verify ocrbridge-ocrmac formatting"
+run = "uv --directory packages/ocrbridge-ocrmac run ruff format --check src tests"
+
+[tasks."format-check:service"]
+description = "Verify ocr-service formatting"
+run = "uv --directory apps/ocr-service run ruff format --check src tests"
+
+[tasks."format-check"]
+description = "Verify formatting for all workspace projects"
+depends = ["format-check:core", "format-check:tesseract", "format-check:easyocr", "format-check:ocrmac", "format-check:service"]
+
+[tasks."typecheck:core"]
+description = "Run pyright for ocrbridge-core"
+run = "uv --directory packages/ocrbridge-core run pyright"
+
+[tasks."typecheck:easyocr"]
+description = "Run pyright for ocrbridge-easyocr"
+run = "uv --directory packages/ocrbridge-easyocr run pyright"
+
+[tasks."typecheck:tesseract"]
+description = "Run pyright for ocrbridge-tesseract"
+run = "uv --directory packages/ocrbridge-tesseract run pyright"
+
+[tasks."typecheck:ocrmac"]
+description = "Run pyright for ocrbridge-ocrmac"
+run = "uv --directory packages/ocrbridge-ocrmac run pyright"
+
+[tasks."typecheck:service"]
+description = "Run ty for ocr-service"
+depends = ["install:service:all-engines"]
+run = "uv --directory apps/ocr-service run ty check"
+
+[tasks.typecheck]
+description = "Run static type checks for all workspace projects"
+depends = ["typecheck:core", "typecheck:tesseract", "typecheck:easyocr", "typecheck:ocrmac", "typecheck:service"]
+
+[tasks."test:core"]
+description = "Run ocrbridge-core tests"
+run = "uv --directory packages/ocrbridge-core run pytest"
+
+[tasks."test:easyocr"]
+description = "Run ocrbridge-easyocr tests"
+run = "uv --directory packages/ocrbridge-easyocr run pytest"
+
+[tasks."test:tesseract"]
+description = "Run ocrbridge-tesseract tests"
+run = "uv --directory packages/ocrbridge-tesseract run pytest"
+
+[tasks."test:ocrmac"]
+description = "Run ocrbridge-ocrmac tests"
+run = "uv --directory packages/ocrbridge-ocrmac run pytest"
+
+[tasks."test:service"]
+description = "Run ocr-service tests"
+run = "uv --directory apps/ocr-service run pytest"
+
+[tasks.test]
+description = "Run all workspace tests"
+depends = ["test:core", "test:tesseract", "test:easyocr", "test:ocrmac", "test:service"]
+
+[tasks.check]
+description = "Run lint, formatting checks, type checks, and tests"
+depends = ["lint", "format-check", "typecheck", "test"]
+
+[tasks."dev:service"]
+description = "Run ocr-service development server"
+run = "uv --directory apps/ocr-service run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000"
+
+[tasks."docker:service:lite"]
+description = "Build the lite ocr-service Docker image"
+run = "docker build --target lite -f apps/ocr-service/Dockerfile -t ocr-service:lite ."
+
+[tasks."docker:service:full"]
+description = "Build the full ocr-service Docker image"
+run = "docker build --target full -f apps/ocr-service/Dockerfile -t ocr-service:full ."
+
+[tasks."compose:service:lite"]
+description = "Run the lite ocr-service compose stack"
+run = "docker compose -f apps/ocr-service/docker-compose.base.yml -f apps/ocr-service/docker-compose.lite.yml up -d"
+
+[tasks."compose:service:full"]
+description = "Run the full ocr-service compose stack"
+run = "docker compose -f apps/ocr-service/docker-compose.base.yml -f apps/ocr-service/docker-compose.yml up -d"

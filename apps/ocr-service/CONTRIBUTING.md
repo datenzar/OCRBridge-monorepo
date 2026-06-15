@@ -39,11 +39,11 @@ Before you begin contributing, please:
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/ocr-service.git
-cd ocr-service
+git clone https://github.com/YOUR_USERNAME/OCRBridge-monorepo.git
+cd OCRBridge-monorepo
 
 # Add upstream remote
-git remote add upstream https://github.com/ORIGINAL_OWNER/ocr-service.git
+git remote add upstream https://github.com/ORIGINAL_OWNER/OCRBridge-monorepo.git
 
 # Install system dependencies (Ubuntu/Debian)
 sudo apt-get update
@@ -53,12 +53,12 @@ sudo apt-get install -y tesseract-ocr tesseract-ocr-eng poppler-utils libmagic1
 mise install
 
 # Install all dev dependencies and OCR engines
-mise run install:all
+mise run install:service:all-engines
 
 # Optional: install specific engine sets
-# mise run install:tesseract
-# mise run install:easyocr
-# mise run install:ocrmac
+# uv sync --package ocr-service --group dev --extra tesseract
+# uv sync --package ocr-service --group dev --extra easyocr
+# uv sync --package ocr-service --group dev --extra ocrmac
 
 # Create required directories
 mkdir -p /tmp/uploads /tmp/results
@@ -73,37 +73,37 @@ cp .env.example .env
 **Option 1: Local Development** (fastest iteration)
 ```bash
 # Development mode with auto-reload
-mise run dev
+mise run dev:service
 ```
 
 **Option 2: Docker Development** (matches production environment)
 ```bash
 # Lite flavor (fastest Docker builds, Tesseract only)
-docker compose -f docker-compose.base.yml -f docker-compose.lite.yml up -d
+docker compose -f apps/ocr-service/docker-compose.base.yml -f apps/ocr-service/docker-compose.lite.yml up -d
 
 # Full flavor (includes EasyOCR, slower builds)
-docker compose -f docker-compose.base.yml -f docker-compose.yml up -d
+docker compose -f apps/ocr-service/docker-compose.base.yml -f apps/ocr-service/docker-compose.yml up -d
 
 # View logs for full flavor
-docker compose -f docker-compose.base.yml -f docker-compose.yml logs -f api
+docker compose -f apps/ocr-service/docker-compose.base.yml -f apps/ocr-service/docker-compose.yml logs -f api
 
 # Rebuild full flavor after code changes
-docker compose -f docker-compose.base.yml -f docker-compose.yml down
-docker compose -f docker-compose.base.yml -f docker-compose.yml build
-docker compose -f docker-compose.base.yml -f docker-compose.yml up -d
+docker compose -f apps/ocr-service/docker-compose.base.yml -f apps/ocr-service/docker-compose.yml down
+docker compose -f apps/ocr-service/docker-compose.base.yml -f apps/ocr-service/docker-compose.yml build
+docker compose -f apps/ocr-service/docker-compose.base.yml -f apps/ocr-service/docker-compose.yml up -d
 ```
 
 **Building Docker Images Locally**:
 ```bash
 # Build lite image (fast, ~2-3 min)
-docker build --target lite -t ocr-service:lite .
+docker build --target lite -f apps/ocr-service/Dockerfile -t ocr-service:lite .
 
 # Build full image (slow, ~10-15 min due to PyTorch)
-docker build --target full -t ocr-service:full -t ocr-service:latest .
+docker build --target full -f apps/ocr-service/Dockerfile -t ocr-service:full -t ocr-service:latest .
 
 # Build both flavors
-docker build --target lite -t ocr-service:lite .
-docker build --target full -t ocr-service:full -t ocr-service:latest .
+docker build --target lite -f apps/ocr-service/Dockerfile -t ocr-service:lite .
+docker build --target full -f apps/ocr-service/Dockerfile -t ocr-service:full -t ocr-service:latest .
 ```
 
 ### Mise Tasks Reference
@@ -457,10 +457,10 @@ We use [Ruff](https://github.com/astral-sh/ruff) for code formatting and linting
 
 ```bash
 # Format code
-mise run lint:format
+mise run format:service
 
 # Auto-fix linting issues
-mise run lint:lint:fix
+uv --directory apps/ocr-service run ruff check --fix src tests
 ```
 
 ### Code Style Guidelines
@@ -507,7 +507,7 @@ This project uses [ty](https://docs.astral.sh/ty) for static type checking. All 
 
 ```bash
 # Run type checker
-mise run lint:typecheck
+mise run typecheck:service
 
 # Check specific directory
 uv run ty check src/
@@ -593,8 +593,8 @@ Understanding our CI/CD workflow helps you know what to expect when submitting P
 Before submitting a PR, ensure:
 
 - [ ] All tests pass (`mise run test:all`)
-- [ ] Code is formatted (`mise run lint:format`)
-- [ ] Linting passes (`mise run lint:lint`)
+- [ ] Code is formatted (`mise run format:service`)
+- [ ] Linting passes (`mise run lint:service`)
 - [ ] Coverage is maintained or improved
 - [ ] Documentation is updated (if needed)
 - [ ] Commit messages follow guidelines

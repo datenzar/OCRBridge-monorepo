@@ -2,7 +2,7 @@
 # This extends docker-compose.base.yml and adds full-specific configuration
 #
 # Usage:
-#   docker compose -f docker-compose.base.yml -f docker-compose.yml up -d
+#   docker compose -f apps/ocr-service/docker-compose.base.yml -f apps/ocr-service/docker-compose.yml up -d
 #
 # For GPU support: Uncomment the GPU section below (requires nvidia-docker)
 

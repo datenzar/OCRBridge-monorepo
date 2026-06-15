@@ -107,9 +107,8 @@ Examples:
 - Pythonpath configured to include `src/` for imports
 
 ## CI/CD
-- GitHub Actions workflows in `.github/workflows/`:
-  - `python-package.yml`: Tests on Python 3.10-3.14
-  - `release.yml`: Automated releases with semantic versioning
-  - `conventional-commits.yml`: Validates commit message format
-- Uses `uv` package manager (version 0.9.3 in CI)
-- All quality checks must pass: lint, format, typecheck, test
+- GitHub Actions workflows are consolidated at the monorepo root in `.github/workflows/`.
+- `python-packages.yml` runs package lint, formatting checks, type checks, and tests.
+- `release.yml` runs package-scoped semantic releases with prefixed tags.
+- Uses the root uv workspace lockfile and pinned uv from root tooling.
+- All quality checks must pass: lint, format, typecheck, test.

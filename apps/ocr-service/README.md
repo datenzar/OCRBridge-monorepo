@@ -44,13 +44,13 @@ This service uses a **modular plugin architecture** powered by the [datenzar OCR
 Install the core service (no engines):
 
 ```bash
-# Clone the repository
+# Clone the monorepo
 git clone <repository-url>
-cd ocr-service
+cd OCRBridge-monorepo
 
 # Install pinned tools and base dependencies
 mise install
-mise run install:base
+mise run install:service
 ```
 
 ### Install OCR Engines
@@ -59,19 +59,19 @@ Choose which engines to install:
 
 ```bash
 # Option 1: Install Tesseract engine
-mise run install:tesseract
+uv sync --package ocr-service --group dev --extra tesseract
 # System requirement: tesseract binary must be installed
 # Ubuntu/Debian: sudo apt-get install tesseract-ocr
 # macOS: brew install tesseract
 
 # Option 2: Install EasyOCR engine (includes PyTorch, ~2GB)
-mise run install:easyocr
+uv sync --package ocr-service --group dev --extra easyocr
 
 # Option 3: Install ocrmac engine (macOS only)
-mise run install:ocrmac
+uv sync --package ocr-service --group dev --extra ocrmac
 
 # Option 4: Install all engines
-mise run install:all
+mise run install:service:all-engines
 
 # Optional: Install pdfocr for searchable PDF output from PDF uploads
 # Requires Go toolchain (https://go.dev/dl/)
@@ -94,7 +94,7 @@ go install github.com/gardar/ocrchestra/cmd/pdfocr@latest
 
 ```bash
 # Install Tesseract engine (lightest option)
-mise run install:tesseract
+uv sync --package ocr-service --group dev --extra tesseract
 
 # Make sure tesseract binary is installed
 # macOS: brew install tesseract
@@ -104,7 +104,7 @@ mise run install:tesseract
 ### 3. Run the Service
 
 ```bash
-mise run dev
+mise run dev:service
 ```
 
 The API will be available at `http://localhost:8000`.
@@ -323,21 +323,21 @@ No code changes to the service required.
 mise install
 
 # Install dependencies (dev + all engines)
-mise run install:all
+mise run install:service:all-engines
 
 # Or install only Tesseract for a lighter setup
-mise run install:tesseract
+uv sync --package ocr-service --group dev --extra tesseract
 ```
 
 ### Run Linting and Type Checking
 
 ```bash
-mise run lint:format
-mise run lint:lint
-mise run lint:typecheck
+mise run format:service
+mise run lint:service
+mise run typecheck:service
 
 # Run all quality tasks
-mise run lint:all
+mise run check
 ```
 
 ### Project Structure
@@ -365,10 +365,10 @@ ocr-service/
 
 ```bash
 # Build the full runtime image
-docker build --target full -t ocr-service:full -t ocr-service:latest .
+docker build --target full -f apps/ocr-service/Dockerfile -t ocr-service:full -t ocr-service:latest .
 
 # Start the API stack
-docker compose -f docker-compose.base.yml -f docker-compose.yml up -d
+docker compose -f apps/ocr-service/docker-compose.base.yml -f apps/ocr-service/docker-compose.yml up -d
 ```
 
 ### Production Considerations

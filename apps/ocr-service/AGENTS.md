@@ -31,20 +31,20 @@ The project uses `mise` tasks for all developer workflows.
 # Install pinned tools from mise.toml
 mise install
 
-# Install dependencies (including dev and all engines)
-mise run install:all
+# Install service dependencies, including dev and all engines
+mise run install:service:all-engines
 ```
 
 ### Running Locally
 ```bash
 # Start development server with reload
-mise run dev
+mise run dev:service
 ```
 
 ### Testing
 ```bash
-# Run all tests
-mise run test:all
+# Run all service tests
+mise run test:service
 
 # Run specific test types
 mise run test:unit
@@ -55,9 +55,9 @@ mise run test:contract
 
 ## Development Conventions
 
-*   **Code Style:** Strict adherence to `ruff` for linting and formatting. Run `mise run lint:lint` and `mise run lint:format` before committing.
-*   **Type Safety:** 100% type compliance required via `ty`. Run `mise run lint:typecheck`.
-*   **Commits:** Follow Conventional Commits. Use `mise run release:commit` to open Commitizen CLI.
+*   **Code Style:** Strict adherence to `ruff` for linting and formatting. Run `mise run lint:service` and `mise run format:service` before committing.
+*   **Type Safety:** 100% type compliance required via `ty`. Run `mise run typecheck:service`.
+*   **Commits:** Follow Conventional Commits. Commitlint is configured at the monorepo root.
 *   **Architecture:**
     *   **Core:** `src/` contains the API service.
     *   **Packages:** Managed via `pyproject.toml`; dependencies are installed through mise tasks.

@@ -1,0 +1,59 @@
+name: Release Packages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/release.yml"
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: ocrbridge-core
+            path: packages/ocrbridge-core
+            pypi-url: https://pypi.org/project/ocrbridge-core/
+          - package: ocrbridge-tesseract
+            path: packages/ocrbridge-tesseract
+            pypi-url: https://pypi.org/project/ocrbridge-tesseract/
+          - package: ocrbridge-easyocr
+            path: packages/ocrbridge-easyocr
+            pypi-url: https://pypi.org/project/ocrbridge-easyocr/
+          - package: ocrbridge-ocrmac
+            path: packages/ocrbridge-ocrmac
+            pypi-url: https://pypi.org/project/ocrbridge-ocrmac/
+    permissions:
+      contents: write
+      id-token: write
+    environment:
+      name: pypi
+      url: ${{ matrix.pypi-url }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v8
+        with:
+          version: "0.11.21"
+      - name: Install release dependencies
+        run: uv sync --locked --package ${{ matrix.package }} --extra build
+      - name: Version and build
+        id: release
+        working-directory: ${{ matrix.path }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: uv run semantic-release -v --strict version
+      - name: Publish package distributions to PyPI
+        if: steps.release.outputs.released == 'true'
+        uses: pypa/gh-action-pypi-publish@v1.13.0
+        with:
+          packages-dir: dist
+          print-hash: true
+          verbose: true

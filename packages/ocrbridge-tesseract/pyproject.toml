@@ -76,10 +76,20 @@ exclude_lines = [
     "if __name__ == .__main__.:",
 ]
 
+[tool.uv.sources]
+ocrbridge-core = { workspace = true }
+
 [tool.semantic_release]
+commit_parser = "conventional-monorepo"
+tag_format = "ocrbridge-tesseract-v{version}"
 build_command = """
+    cd ../..
     uv lock --upgrade-package "$PACKAGE_NAME"
     git add uv.lock
-    uv build
+    uv build --package ocrbridge-tesseract
 """
 version_toml = ["pyproject.toml:project.version"]
+
+[tool.semantic_release.commit_parser_options]
+path_filters = ["packages/ocrbridge-tesseract/**"]
+scope_prefix = "ocrbridge-tesseract"

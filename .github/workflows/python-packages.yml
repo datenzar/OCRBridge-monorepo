@@ -1,0 +1,71 @@
+name: Python Packages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "mise.toml"
+      - ".github/workflows/python-packages.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "mise.toml"
+      - ".github/workflows/python-packages.yml"
+
+jobs:
+  linux-packages:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: ocrbridge-core
+            path: packages/ocrbridge-core
+          - package: ocrbridge-tesseract
+            path: packages/ocrbridge-tesseract
+          - package: ocrbridge-easyocr
+            path: packages/ocrbridge-easyocr
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v8
+        with:
+          version: "0.11.21"
+      - name: Install system dependencies
+        if: matrix.package != 'ocrbridge-core'
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils tesseract-ocr
+      - name: Install dependencies
+        run: uv sync --locked --package ${{ matrix.package }} --group dev
+      - name: Lint
+        run: uv --directory ${{ matrix.path }} run ruff check src tests
+      - name: Check formatting
+        run: uv --directory ${{ matrix.path }} run ruff format --check src tests
+      - name: Type check
+        run: uv --directory ${{ matrix.path }} run pyright
+      - name: Test
+        run: uv --directory ${{ matrix.path }} run pytest
+
+  ocrmac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: jdx/mise-action@v4
+        with:
+          install: true
+          cache: true
+          install_args: python uv go
+      - run: brew install poppler
+      - run: mise run install:pdfocr
+      - run: mise run install:ocrmac
+      - run: mise run lint:ocrmac
+      - run: mise run format-check:ocrmac
+      - run: mise run typecheck:ocrmac
+      - run: mise run test:ocrmac

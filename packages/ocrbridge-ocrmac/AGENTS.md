@@ -63,20 +63,21 @@ uv run pytest -vv
 ```
 
 ## CI and Release Parity
-CI workflow (`.github/workflows/python-package.yml`) runs:
+The root CI workflow (`.github/workflows/python-packages.yml`) runs:
 ```bash
-mise run install
-mise run lint
-mise run format
-mise run typecheck
-mise run test
+mise run install:ocrmac
+mise run lint:ocrmac
+mise run format-check:ocrmac
+mise run typecheck:ocrmac
+mise run test:ocrmac
 ```
 
 Release flow depends on semantic-release and lockfile staging:
 ```bash
+cd ../..
 uv lock --upgrade-package "$PACKAGE_NAME"
 git add uv.lock
-uv build
+uv build --package ocrbridge-ocrmac
 uv run semantic-release -v --strict version --skip-build
 uv run semantic-release publish
 ```

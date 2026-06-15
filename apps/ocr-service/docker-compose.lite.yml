@@ -2,7 +2,7 @@
 # This extends docker-compose.base.yml and adds lite-specific configuration
 #
 # Usage:
-#   docker compose -f docker-compose.base.yml -f docker-compose.lite.yml up -d
+#   docker compose -f apps/ocr-service/docker-compose.base.yml -f apps/ocr-service/docker-compose.lite.yml up -d
 #
 # This flavor uses minimal resources and only includes Tesseract OCR
 

@@ -1,6 +1,0 @@
-{
-  "devDependencies": {
-    "@commitlint/cli": "^20.1.0",
-    "@commitlint/config-conventional": "^21.0.0"
-  }
-}

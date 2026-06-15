@@ -70,4 +70,4 @@ The project uses a `Makefile` to streamline development tasks, leveraging `uv` f
 *   **Typing:** The code is strictly typed. `pyright` is used in strict mode (`typeCheckingMode = "strict"` in `pyproject.toml`).
 *   **Testing:** Tests are located in the `tests/` directory and should cover new functionality. `pytest` is the runner.
 *   **Project Structure:** Source code is under `src/` to support standard Python packaging layouts.
-*   **Dependency Management:** `uv` is the authoritative tool for managing the lockfile (`uv.lock`). Always use `uv add` or `uv sync` rather than manual pip installs.
+*   **Dependency Management:** `uv` is the authoritative tool for managing the root workspace lockfile (`../../uv.lock`). Always use `uv add` or `uv sync` rather than manual pip installs.

@@ -1,0 +1,38 @@
+name: OCR Service
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/ocr-service/**"
+      - "packages/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "mise.toml"
+      - ".github/workflows/ocr-service.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/ocr-service/**"
+      - "packages/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "mise.toml"
+      - ".github/workflows/ocr-service.yml"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - run: sudo apt-get update && sudo apt-get install -y tesseract-ocr poppler-utils libmagic1
+      - uses: jdx/mise-action@v4
+        with:
+          install: true
+          cache: true
+      - run: mise run install:service:all-engines
+      - run: mise run lint:service
+      - run: mise run typecheck:service
+      - run: mise run test:service
