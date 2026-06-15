@@ -12,44 +12,47 @@
   };
 
   outputs = inputs@{ self, nixpkgs, flake-utils, nix-darwin, ... }:
-    flake-utils.lib.eachSystem (import ./nix/systems.nix) (system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-        isLinux = pkgs.stdenv.hostPlatform.isLinux;
-        isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
-      in
-      {
-        packages = {
-          default = pkgs.hello;
-          ocr-service-lite = pkgs.hello;
-          ocr-service-full = pkgs.hello;
-        } // pkgs.lib.optionalAttrs isDarwin {
-          ocr-service-macos = pkgs.hello;
-        };
-
-        apps = {
-          default = flake-utils.lib.mkApp { drv = pkgs.hello; };
-          ocr-service-lite = flake-utils.lib.mkApp { drv = pkgs.hello; };
-          ocr-service-full = flake-utils.lib.mkApp { drv = pkgs.hello; };
-        } // pkgs.lib.optionalAttrs isDarwin {
-          ocr-service-macos = flake-utils.lib.mkApp { drv = pkgs.hello; };
-        };
-
-        devShells.default = pkgs.mkShell {
-          packages = [ pkgs.nixpkgs-fmt ];
-        };
-
-        checks = pkgs.lib.optionalAttrs isLinux {
-          nixos-module-eval = import ./nix/tests/nixos-module-eval.nix {
-            inherit nixpkgs self system;
+    flake-utils.lib.eachSystem (import ./nix/systems.nix)
+      (system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+          isLinux = pkgs.stdenv.hostPlatform.isLinux;
+          isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+          pythonEnvs = import ./nix/python-envs.nix {
+            inherit pkgs;
+            inherit (pkgs) lib;
+            inherit (inputs) pyproject-nix uv2nix pyproject-build-systems;
           };
-        } // pkgs.lib.optionalAttrs isDarwin {
-          darwin-module-eval = import ./nix/tests/darwin-module-eval.nix {
-            inherit nix-darwin nixpkgs self system;
+        in
+        {
+          packages = pythonEnvs.packages // {
+            default = pythonEnvs.packages.ocr-service-lite;
           };
-        };
-      }) // {
-        nixosModules.ocr-service = import ./nix/modules/nixos/ocr-service.nix;
-        darwinModules.ocr-service = import ./nix/modules/darwin/ocr-service.nix;
-      };
+
+          apps = {
+            default = flake-utils.lib.mkApp { drv = pythonEnvs.packages.ocr-service-lite; };
+            ocr-service-lite = flake-utils.lib.mkApp { drv = pythonEnvs.packages.ocr-service-lite; };
+            ocr-service-full = flake-utils.lib.mkApp { drv = pythonEnvs.packages.ocr-service-full; };
+          } // pkgs.lib.optionalAttrs isDarwin {
+            ocr-service-macos = flake-utils.lib.mkApp { drv = pythonEnvs.packages.ocr-service-macos; };
+          };
+
+          devShells.default = pkgs.mkShell {
+            packages = [ pkgs.nixpkgs-fmt ];
+          };
+
+          checks = pkgs.lib.optionalAttrs isLinux
+            {
+              nixos-module-eval = import ./nix/tests/nixos-module-eval.nix {
+                inherit nixpkgs self system;
+              };
+            } // pkgs.lib.optionalAttrs isDarwin {
+            darwin-module-eval = import ./nix/tests/darwin-module-eval.nix {
+              inherit nix-darwin nixpkgs self system;
+            };
+          };
+        }) // {
+      nixosModules.ocr-service = import ./nix/modules/nixos/ocr-service.nix;
+      darwinModules.ocr-service = import ./nix/modules/darwin/ocr-service.nix;
+    };
 }
