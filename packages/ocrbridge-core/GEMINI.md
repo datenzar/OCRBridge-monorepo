@@ -7,6 +7,7 @@
 ### Key Technologies
 *   **Language:** Python 3.10+
 *   **Build System:** Hatchling
+*   **Task Runner:** `mise`
 *   **Dependency Manager:** `uv`
 *   **Linting & Formatting:** `ruff`
 *   **Type Checking:** `pyright`
@@ -24,43 +25,44 @@ The package is structured around these core components located in `src/ocrbridge
 
 ## Building and Running
 
-The project uses a `Makefile` to streamline development tasks, leveraging `uv` for environment management.
+The project uses the root `mise.toml` to streamline development tasks, leveraging `uv` for environment management.
 
 ### Common Commands
 
 *   **Install Dependencies:**
     ```bash
-    make install
+    mise install
+    mise run install:core
     ```
     *Syncs dependencies including dev extras.*
 
 *   **Run Tests:**
     ```bash
-    make test
+    mise run test:core
     ```
     *Runs the test suite using `pytest`.*
 
 *   **Linting:**
     ```bash
-    make lint
+    mise run lint:core
     ```
     *Checks code style and errors using `ruff`.*
 
 *   **Formatting:**
     ```bash
-    make format
+    mise run format:core
     ```
     *Formats code using `ruff`.*
 
 *   **Type Checking:**
     ```bash
-    make typecheck
+    mise run typecheck:core
     ```
     *Runs static type analysis using `pyright`.*
 
 *   **Full Check:**
     ```bash
-    make check
+    mise run check
     ```
     *Runs lint, typecheck, and test in sequence.*
 

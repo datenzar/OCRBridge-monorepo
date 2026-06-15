@@ -37,33 +37,31 @@ This is a Tesseract OCR engine implementation for the OCR Bridge architecture. I
 ## Development Commands
 
 ### Dependency Management
-Use `uv` for all package management:
+Use `mise` from the repository root for task running and tool management:
 ```bash
 # Install dependencies including dev extras
-make install
-# or
-uv sync --extra dev
+mise install
+mise run install:tesseract
 ```
 
 ### Code Quality
 ```bash
 # Run all checks (lint + typecheck + test)
-make check
+mise run lint:tesseract
+mise run typecheck:tesseract
+mise run test:tesseract
 
 # Individual checks
-make lint        # Ruff linting
-make format      # Ruff formatting
-make typecheck   # Pyright type checking
-make test        # Pytest
-
-# Run everything (check + format)
-make all
+mise run lint:tesseract        # Ruff linting
+mise run format:tesseract      # Ruff formatting
+mise run typecheck:tesseract   # Pyright type checking
+mise run test:tesseract        # Pytest
 ```
 
 ### Running Tests
 ```bash
 # Run all tests (including integration)
-make test
+mise run test:tesseract
 
 # Run only unit tests (exclude integration)
 uv run pytest tests/ -m "not integration"

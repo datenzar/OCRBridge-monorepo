@@ -12,14 +12,17 @@ Core interfaces and utilities for OCR Bridge engine packages.
 pip install ocrbridge-core
 ```
 
-For local development, we recommend using `uv` and the provided `Makefile`.
+For local development, use the root `mise.toml` tasks.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed setup instructions.
 
 ```bash
-# Quick start (requires uv)
-make install
-make check
+# Quick start from the repository root (requires mise)
+mise install
+mise run install:core
+mise run lint:core
+mise run typecheck:core
+mise run test:core
 ```
 
 ## Core Components

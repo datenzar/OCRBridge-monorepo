@@ -114,38 +114,41 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/OCRBri
 
 #### Development Setup
 
-This project uses [uv](https://github.com/astral-sh/uv) for dependency management and a `Makefile` for common tasks.
+This project uses [mise](https://mise.jdx.dev/) for task running and tool management, with [uv](https://github.com/astral-sh/uv) for Python dependency management.
 
-1.  **Install `uv`:**
-    Follow the instructions at [https://github.com/astral-sh/uv](https://github.com/astral-sh/uv) to install `uv` for your system.
+1.  **Install `mise`:**
+    Follow the instructions at [https://mise.jdx.dev/](https://mise.jdx.dev/) to install `mise` for your system.
 
 2.  **Clone the repository:**
     ```bash
-    git clone https://github.com/OCRBridge/ocrbridge-core.git
-    cd ocrbridge-core
+    git clone https://github.com/OCRBridge/OCRBridge-monorepo.git
+    cd OCRBridge-monorepo
     ```
 
 3.  **Install dependencies:**
     ```bash
-    make install
+    mise install
+    mise run install:core
     ```
-    This command uses `uv` to sync dependencies and install development extras.
+    These commands install pinned tools and use `uv` to sync dependencies and install development extras.
 
 4.  **Verify setup:**
     Run the full check suite to ensure everything is working:
     ```bash
-    make check
+    mise run lint:core
+    mise run typecheck:core
+    mise run test:core
     ```
 
 #### Common Tasks
 
-The `Makefile` provides shortcuts for common development tasks:
+The root `mise.toml` provides shortcuts for common development tasks:
 
--   **Run Tests:** `make test` (runs `pytest`)
--   **Lint Code:** `make lint` (runs `ruff check`)
--   **Format Code:** `make format` (runs `ruff format`)
--   **Type Check:** `make typecheck` (runs `pyright`)
--   **Run All Checks:** `make check` (lint + typecheck + test)
+-   **Run Tests:** `mise run test:core` (runs `pytest`)
+-   **Lint Code:** `mise run lint:core` (runs `ruff check`)
+-   **Format Code:** `mise run format:core` (runs `ruff format`)
+-   **Type Check:** `mise run typecheck:core` (runs `pyright`)
+-   **Run All Checks:** `mise run check` (workspace lint + format check + typecheck + test)
 
 ### Improving The Documentation
 

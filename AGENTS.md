@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Start Here
-- Use `mise` from the repository root for normal workflows; `mise.toml` is the command source of truth, not the package-local `Makefile`s or older package instruction files.
+- Use `mise` from the repository root for normal workflows; `mise.toml` is the command source of truth, not older package instruction files.
 - Install pinned tools first with `mise install`, then install dependencies with `mise run install:all` or a narrower task such as `mise run install:service:all-engines`.
 - The root is a `uv` workspace; keep dependency and lockfile changes in the root `pyproject.toml` / `uv.lock` unless a package `pyproject.toml` is the real source of the change.
 

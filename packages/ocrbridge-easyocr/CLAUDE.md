@@ -10,17 +10,17 @@ This is the EasyOCR engine implementation for OCR Bridge - a plugin that provide
 
 ### Setup
 ```zsh
-make install          # Install dependencies with uv (includes dev extras)
+mise install
+mise run install:easyocr  # Install dependencies with uv (includes dev extras)
 ```
 
 ### Testing & Quality
 ```zsh
-make test            # Run pytest test suite
-make lint            # Run ruff linter
-make format          # Format code with ruff
-make typecheck       # Type check with pyright
-make check           # Run all checks: lint + typecheck + test
-make all             # Run check + format (default target)
+mise run test:easyocr          # Run pytest test suite
+mise run lint:easyocr          # Run ruff linter
+mise run format:easyocr        # Format code with ruff
+mise run typecheck:easyocr     # Type check with pyright
+mise run check                 # Run all workspace checks
 ```
 
 ### Running Single Tests

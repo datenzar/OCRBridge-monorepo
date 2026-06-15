@@ -15,23 +15,23 @@
 
 ### Prerequisites
 *   **Python:** 3.10+
+*   **Task Runner:** `mise`
 *   **Package Manager:** `uv` (Unified Python packaging)
 *   **System Libraries:**
     *   `poppler-utils` (Required by `pdf2image` for PDF processing)
     *   CUDA-compatible GPU drivers (Optional, for GPU acceleration)
 
 ### Building and Running
-This project uses a `Makefile` to orchestrate common development tasks, wrapping `uv` commands.
+This project uses the root `mise.toml` to orchestrate common development tasks, wrapping `uv` commands.
 
 | Command | Description |
 | :--- | :--- |
-| `make install` | Install dependencies, including dev extras. |
-| `make test` | Run the test suite using `pytest`. |
-| `make lint` | Run `ruff` for code linting. |
-| `make format` | Format code using `ruff`. |
-| `make typecheck` | Run static type checking with `pyright`. |
-| `make check` | Run all quality checks: `lint`, `typecheck`, and `test`. |
-| `make all` | Run `check` and `format`. |
+| `mise run install:easyocr` | Install dependencies, including dev extras. |
+| `mise run test:easyocr` | Run the test suite using `pytest`. |
+| `mise run lint:easyocr` | Run `ruff` for code linting. |
+| `mise run format:easyocr` | Format code using `ruff`. |
+| `mise run typecheck:easyocr` | Run static type checking with `pyright`. |
+| `mise run check` | Run all workspace quality checks. |
 | `uv build` | Build the distribution packages (wheel/sdist). |
 
 ### Architecture

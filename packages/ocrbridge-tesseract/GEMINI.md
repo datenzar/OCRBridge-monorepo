@@ -31,26 +31,25 @@ tesseract = "ocrbridge.engines.tesseract:TesseractEngine"
 
 ## Building and Running
 
-This project uses `uv` for dependency management and a `Makefile` for common tasks.
+This project uses `mise` for task running and tool management, with `uv` for dependency management.
 
 ### Prerequisites
 1.  **Tesseract Binary**: Must be installed on your system (e.g., `apt-get install tesseract-ocr` or `brew install tesseract`).
-2.  **uv**: Ensure `uv` is installed.
+2.  **mise**: Ensure `mise` is installed, then run `mise install` from the repository root.
 
 ### Commands
 
 | Task | Command | Description |
 | :--- | :--- | :--- |
-| **Install** | `make install` | Sync dependencies including dev extras. |
-| **Test** | `make test` | Run all tests using `pytest`. |
-| **Lint** | `make lint` | Run `ruff check`. |
-| **Format** | `make format` | Run `ruff format`. |
-| **Type Check** | `make typecheck` | Run `pyright` (strict mode). |
-| **Check All** | `make check` | Run lint, typecheck, and test in sequence. |
-| **Full Build**| `make all` | Run check and format. |
+| **Install** | `mise run install:tesseract` | Sync dependencies including dev extras. |
+| **Test** | `mise run test:tesseract` | Run all tests using `pytest`. |
+| **Lint** | `mise run lint:tesseract` | Run `ruff check`. |
+| **Format** | `mise run format:tesseract` | Run `ruff format`. |
+| **Type Check** | `mise run typecheck:tesseract` | Run `pyright` (strict mode). |
+| **Check All** | `mise run check` | Run all workspace quality checks. |
 
-**Manual Alternatives (via `uv`):**
-*   `uv sync --extra dev`
+**Manual Alternatives (via `uv` from the package directory):**
+*   `uv sync --group dev`
 *   `uv run pytest`
 *   `uv run ruff check src tests`
 

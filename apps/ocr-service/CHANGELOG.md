@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2024-11-22
 
 ### Added
-- Makefile for simplified development workflow
+- Task shortcuts for simplified development workflow
 - Pre-commit hooks with automated code quality checks
 - Pyright for static type checking
 - Ruff workflow for CI/CD linting
