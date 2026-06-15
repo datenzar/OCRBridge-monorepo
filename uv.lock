@@ -1361,7 +1361,7 @@ dev = [
 
 [[package]]
 name = "ocrbridge-core"
-version = "3.1.1"
+version = "1.0.0"
 source = { editable = "packages/ocrbridge-core" }
 dependencies = [
     { name = "pdf2image" },
