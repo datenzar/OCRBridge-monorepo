@@ -32,7 +32,7 @@ let
       };
       shellHook = ''
         unset PYTHONPATH
-        export REPO_ROOT="$PWD"
+        export REPO_ROOT="${../.}"
         export PATH="${env}/bin:$PATH"
         echo "OCRBridge Nix shell: ${name}"
       '';
