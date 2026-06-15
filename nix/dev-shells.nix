@@ -32,7 +32,13 @@ let
       };
       shellHook = ''
         unset PYTHONPATH
-        export REPO_ROOT="${../.}"
+        REPO_ROOT="${../.}"
+        if git_root=$(git rev-parse --show-toplevel 2>/dev/null); then
+          if [ -d "$git_root/apps/ocr-service" ]; then
+            REPO_ROOT="$git_root"
+          fi
+        fi
+        export REPO_ROOT
         export PATH="${env}/bin:$PATH"
         echo "OCRBridge Nix shell: ${name}"
       '';
