@@ -15,6 +15,7 @@
     flake-utils.lib.eachSystem (import ./nix/systems.nix) (system:
       let
         pkgs = import nixpkgs { inherit system; };
+        isLinux = pkgs.stdenv.hostPlatform.isLinux;
         isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
       in
       {
@@ -38,7 +39,7 @@
           packages = [ pkgs.nixpkgs-fmt ];
         };
 
-        checks = {
+        checks = pkgs.lib.optionalAttrs isLinux {
           nixos-module-eval = import ./nix/tests/nixos-module-eval.nix {
             inherit nixpkgs self system;
           };
