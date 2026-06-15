@@ -1,0 +1,286 @@
+"""EasyOCR engine implementation for deep learning-based OCR."""
+
+import tempfile
+from pathlib import Path
+from typing import Any, Mapping, Sequence, cast
+
+import numpy as np
+from PIL import Image
+
+from ocrbridge.core import OCREngine, OCRProcessingError, UnsupportedFormatError
+from ocrbridge.core.models import OCREngineParams
+from ocrbridge.core.utils.hocr import merge_hocr_pages
+from ocrbridge.core.utils.pdf import convert_pdf_to_images
+
+from . import hocr as hocr_utils
+from .models import EasyOCRParams
+
+EasyOCRReader = Any
+Point = tuple[float, float]
+BoundingBox = Sequence[Point]
+EasyOCRResult = tuple[BoundingBox, str, float]
+EasyOCRResults = list[EasyOCRResult]
+
+
+def detect_gpu_availability() -> bool:
+    """Detect if CUDA GPU is available for EasyOCR.
+
+    Returns:
+        True if CUDA GPU is available, False otherwise
+    """
+    try:
+        import torch
+
+        return torch.cuda.is_available()
+    except ImportError:
+        return False
+    except Exception:
+        return False
+
+
+def get_easyocr_device() -> tuple[bool, str]:
+    """Automatically detect and determine the best device for EasyOCR.
+
+    Returns:
+        Tuple of (use_gpu, device_name)
+    """
+    if detect_gpu_availability():
+        import torch
+
+        device_name = f"cuda:{torch.cuda.current_device()}"
+        return True, device_name
+    else:
+        return False, "cpu"
+
+
+class EasyOCREngine(OCREngine):
+    """EasyOCR engine implementation.
+
+    Uses deep learning models for multilingual OCR with automatic GPU acceleration.
+    GPU is automatically detected and used when available, with graceful fallback to CPU.
+    Supports 80+ languages with superior accuracy for Asian scripts.
+
+    Thread Safety:
+        This engine is NOT thread-safe. The internal EasyOCR Reader instance is shared
+        and reused across calls for performance. Concurrent calls to process() from
+        multiple threads may cause race conditions or undefined behavior.
+
+        For thread-safe usage, either:
+        - Use a separate EasyOCREngine instance per thread
+        - Serialize access to process() using external locking
+        - Use the ocr-service which handles concurrency via async/await with to_thread()
+    """
+
+    def __init__(self):
+        """Initialize EasyOCR engine."""
+        self.reader: EasyOCRReader | None = None
+        self._current_languages: list[str] | None = None
+
+    @property
+    def name(self) -> str:
+        """Return engine name."""
+        return "easyocr"
+
+    @property
+    def supported_formats(self) -> set[str]:
+        """Return supported file extensions."""
+        return {".jpg", ".jpeg", ".png", ".pdf", ".tiff", ".tif"}
+
+    def _coerce_params(self, params: OCREngineParams | None) -> EasyOCRParams:
+        """Ensure params are EasyOCR-compatible."""
+        if params is None:
+            return EasyOCRParams()
+
+        if isinstance(params, EasyOCRParams):
+            return params
+
+        if hasattr(params, "model_dump"):
+            data = getattr(params, "model_dump")()
+            if isinstance(data, Mapping):
+                typed_data = cast("Mapping[str, Any]", data)
+                return EasyOCRParams(**dict(typed_data))
+
+        raise OCRProcessingError("EasyOCR engine requires EasyOCRParams")
+
+    def _create_reader(self, languages: list[str]) -> EasyOCRReader:
+        """Create EasyOCR Reader instance with specified configuration.
+
+        Args:
+            languages: List of language codes
+
+        Returns:
+            easyocr.Reader instance
+        """
+        try:
+            import easyocr
+        except ImportError as e:
+            raise OCRProcessingError(
+                "EasyOCR not installed. Install with: pip install easyocr"
+            ) from e
+
+        # Automatically determine device (GPU or CPU)
+        use_gpu, _ = get_easyocr_device()
+
+        # Create reader with language list and GPU setting
+        reader: EasyOCRReader = easyocr.Reader(
+            lang_list=languages,
+            gpu=use_gpu,
+        )
+
+        return reader
+
+    def process(self, file_path: Path, params: OCREngineParams | None = None) -> str:
+        """Process document with EasyOCR and return HOCR XML.
+
+        Args:
+            file_path: Path to image or PDF file
+            params: EasyOCR parameters (languages, thresholds)
+
+        Returns:
+            HOCR XML string with recognized text and bounding boxes
+
+        Raises:
+            OCRProcessingError: If EasyOCR processing fails
+            UnsupportedFormatError: If file format not supported
+        """
+        easyocr_params = self._coerce_params(params)
+
+        # Validate file exists
+        if not file_path.exists():
+            raise OCRProcessingError(f"File not found: {file_path}")
+
+        # Validate file format
+        suffix = file_path.suffix.lower()
+        if suffix not in self.supported_formats:
+            raise UnsupportedFormatError(
+                f"Unsupported file format: {suffix}. "
+                f"Supported formats: {', '.join(sorted(self.supported_formats))}"
+            )
+
+        # Create or recreate reader if languages changed
+        if self.reader is None or self._current_languages != easyocr_params.languages:
+            # Release old reader to free GPU memory before creating new one
+            if self.reader is not None:
+                del self.reader
+                self.reader = None
+                # Clear GPU cache if available
+                try:
+                    import torch
+
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                except ImportError:
+                    pass
+
+            self.reader = self._create_reader(easyocr_params.languages)
+            self._current_languages = easyocr_params.languages
+
+        try:
+            # Handle PDF separately
+            if suffix == ".pdf":
+                return self._process_pdf(file_path, easyocr_params)
+            else:
+                return self._process_image(file_path, easyocr_params)
+
+        except Exception as e:
+            raise OCRProcessingError(f"EasyOCR processing failed: {e}") from e
+
+    def _process_image(self, image_path: Path, params: EasyOCRParams) -> str:
+        """Process single image with EasyOCR.
+
+        Args:
+            image_path: Path to image file
+            params: EasyOCR parameters
+
+        Returns:
+            HOCR XML string
+        """
+        if self.reader is None:
+            raise OCRProcessingError("EasyOCR reader is not initialized")
+
+        # Process image with EasyOCR
+        results = cast(
+            EasyOCRResults,
+            self.reader.readtext(
+                str(image_path),
+                detail=1,  # Include bounding boxes and confidence
+                paragraph=False,  # Return individual text boxes
+            ),
+        )
+
+        # Convert results to HOCR format
+        hocr_output = self._to_hocr(results, image_path)
+
+        return hocr_output
+
+    def _process_pdf(self, pdf_path: Path, params: EasyOCRParams) -> str:
+        """Process PDF file by converting to images then OCR.
+
+        Args:
+            pdf_path: Path to PDF file
+            params: EasyOCR parameters
+
+        Returns:
+            HOCR XML string with all pages combined
+        """
+        # Convert PDF to images
+        images = convert_pdf_to_images(pdf_path, dpi=300)
+
+        # Process each page
+        if self.reader is None:
+            raise OCRProcessingError("EasyOCR reader is not initialized")
+
+        page_hocr_list: list[str] = []
+        for image in images:
+            # Convert PIL Image to numpy array for EasyOCR
+            img_array = np.array(image)
+
+            # Run EasyOCR on page image
+            results = cast(
+                EasyOCRResults,
+                self.reader.readtext(
+                    img_array,
+                    detail=1,
+                    paragraph=False,
+                ),
+            )
+
+            # Convert results to HOCR for this page
+            # Save image temporarily to get dimensions using secure TemporaryDirectory
+            with tempfile.TemporaryDirectory() as temp_dir:
+                temp_path = Path(temp_dir) / "page.png"
+                image.save(temp_path, format="PNG")
+                page_hocr = self._to_hocr(results, temp_path)
+                page_hocr_list.append(page_hocr)
+            # Cleanup happens automatically when context manager exits
+
+        # Merge all pages into single HOCR document
+        if len(page_hocr_list) == 1:
+            hocr_content: str = page_hocr_list[0]
+        else:
+            hocr_content = merge_hocr_pages(page_hocr_list, system_name="easyocr")
+
+        return hocr_content
+
+    def _to_hocr(self, easyocr_results: EasyOCRResults, image_path: Path) -> str:
+        """Convert EasyOCR results to HOCR XML format.
+
+        Args:
+            easyocr_results: List of (bbox, text, confidence) tuples from EasyOCR
+            image_path: Path to original image (for dimensions)
+
+        Returns:
+            HOCR XML string
+        """
+        # Get image dimensions
+        try:
+            with Image.open(image_path) as img:
+                image_width, image_height = img.size
+        except Exception:
+            # Use default dimensions if image can't be opened
+            image_width, image_height = 1000, 1000
+
+        # Convert to HOCR using internal utility
+        hocr_xml = hocr_utils.to_hocr(easyocr_results, image_width, image_height)
+
+        return hocr_xml
