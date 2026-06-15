@@ -52,18 +52,19 @@ let
     pkgs.poppler-utils
     pkgs.tesseract
     pkgs.file
+    pdfocrPackage
   ];
 
   pdfocrPackage = pkgs.buildGoModule rec {
     pname = "pdfocr";
-    version = "latest";
+    version = "0-unstable-2026-01-20";
     src = pkgs.fetchFromGitHub {
       owner = "gardar";
       repo = "ocrchestra";
-      rev = "main";
-      hash = lib.fakeHash;
+      rev = "aaae7e4d40e97931d4e06c0aa2e3ed77e3eb89d8";
+      hash = "sha256-AQ3yB5rwj7DPQEmCLuwDwLo0oWNNy2mz3AoQqueta9c=";
     };
-    vendorHash = lib.fakeHash;
+    vendorHash = "sha256-HBejxfSdSDIl6rq4D4h7l9OSG2yfuM38SwxrBTeK9xw=";
     subPackages = [ "cmd/pdfocr" ];
   };
 
