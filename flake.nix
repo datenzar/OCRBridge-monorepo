@@ -37,8 +37,10 @@
             ocr-service-macos = flake-utils.lib.mkApp { drv = pythonEnvs.packages.ocr-service-macos; };
           };
 
-          devShells.default = pkgs.mkShell {
-            packages = [ pkgs.nixpkgs-fmt ];
+          devShells = import ./nix/dev-shells.nix {
+            inherit pkgs;
+            inherit (pkgs) lib;
+            inherit pythonEnvs;
           };
 
           checks = pkgs.lib.optionalAttrs isLinux
