@@ -33,12 +33,11 @@ jobs:
             path: packages/ocrbridge-easyocr
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: jdx/mise-action@v4
         with:
-          python-version: "3.12"
-      - uses: astral-sh/setup-uv@v8
-        with:
-          version: "0.11.21"
+          install: true
+          cache: true
+          install_args: python uv
       - name: Install system dependencies
         if: matrix.package != 'ocrbridge-core'
         run: sudo apt-get update && sudo apt-get install -y poppler-utils tesseract-ocr

@@ -32,6 +32,7 @@ jobs:
         with:
           install: true
           cache: true
+          install_args: python uv
       - run: mise run install:service:all-engines
       - run: mise run lint:service
       - run: mise run typecheck:service
