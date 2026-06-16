@@ -32,8 +32,12 @@ Use `mise` for the default contributor workflow. `mise.toml` is the task source 
 ```bash
 mise install
 mise run install:all
+mise run doctor
+mise run check:fast
 mise run check
 ```
+
+`mise run check:fast` runs linting, formatting, type checks, and deterministic tests that avoid real EasyOCR model downloads and macOS-only OCR E2E tests. `mise run check` remains the full local gate and expects external OCR tools and model caches to be available. Run `mise run doctor` first when setting up a host.
 
 Use Nix flakes when you need reproducible development shells, package and app outputs, or the NixOS/nix-darwin service modules.
 
@@ -43,9 +47,12 @@ nix build .#ocr-service-lite
 nix run .#ocr-service-lite
 ```
 
+On Darwin, the Nix development shells set `TMPDIR` to a repo-local `.tmp` directory because Nix-provided Tesseract can fail to read OCR temp images from `/tmp`. The shells also set `EASYOCR_MODULE_PATH` to a repo-local `.cache/easyocr` directory to keep EasyOCR model downloads out of the shared home cache.
+
 Use Docker or Podman for containerized service deployment through the existing Dockerfile and Compose stack.
 
 ```bash
+mise run docker:doctor
 mise run docker:service:lite
 mise run compose:service:lite
 ```
@@ -55,10 +62,13 @@ The `ocrmac` engine is native macOS-only and is not included in Linux containers
 ## Common Commands
 
 ```bash
+mise run doctor
 mise run lint
 mise run format-check
 mise run typecheck
+mise run test:fast
 mise run test
+mise run check:fast
 mise run check
 ```
 
@@ -75,6 +85,7 @@ mise run dev:service
 Build Docker images from the repository root:
 
 ```bash
+mise run docker:doctor
 mise run docker:service:lite
 mise run docker:service:full
 ```

@@ -50,6 +50,65 @@ run = "uv sync --package ocr-service --group dev --all-extras"
 description = "Install pdfocr CLI for searchable PDF generation"
 run = "go install github.com/gardar/ocrchestra/cmd/pdfocr@latest"
 
+[tasks.doctor]
+description = "Check external OCR tool prerequisites for the full local gate"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+missing=0
+
+require_cmd() {
+  local cmd="$1"
+  local install_hint="$2"
+  if command -v "$cmd" >/dev/null 2>&1; then
+    printf 'ok: %s -> %s\n' "$cmd" "$(command -v "$cmd")"
+  else
+    printf 'missing: %s\n  install: %s\n' "$cmd" "$install_hint" >&2
+    missing=1
+  fi
+}
+
+warn_cmd() {
+  local cmd="$1"
+  local install_hint="$2"
+  if command -v "$cmd" >/dev/null 2>&1; then
+    printf 'ok: %s -> %s\n' "$cmd" "$(command -v "$cmd")"
+  else
+    printf 'warning: %s not found\n  install: %s\n' "$cmd" "$install_hint" >&2
+  fi
+}
+
+require_cmd tesseract 'macOS: brew install tesseract; Linux: install tesseract-ocr'
+require_cmd pdfinfo 'macOS: brew install poppler; Linux: install poppler-utils'
+warn_cmd pdfocr 'mise run install:pdfocr'
+
+if [ -n "${EASYOCR_MODULE_PATH:-}" ]; then
+  easyocr_root="$EASYOCR_MODULE_PATH"
+else
+  easyocr_root="$HOME/.EasyOCR"
+fi
+printf 'info: EasyOCR model cache: %s\n' "$easyocr_root"
+if [ ! -d "$easyocr_root/model" ]; then
+  printf 'warning: EasyOCR model directory is missing; first full EasyOCR test may download models.\n' >&2
+fi
+
+if command -v docker >/dev/null 2>&1; then
+  if docker info >/dev/null 2>&1; then
+    printf 'ok: docker daemon reachable\n'
+  else
+    printf 'warning: docker client exists, but daemon is not reachable. Run mise run docker:doctor before container builds.\n' >&2
+  fi
+else
+  printf 'warning: docker not found; container tasks need Docker, Colima, or Podman-compatible Docker CLI.\n' >&2
+fi
+
+if [ "$missing" -ne 0 ]; then
+  printf '\nFull OCR checks require the missing tools above. Use nix develop for pinned tools or install them on the host.\n' >&2
+  exit 1
+fi
+'''
+
 [tasks."lint:core"]
 description = "Run Ruff lint checks for ocrbridge-core"
 run = "uv --directory packages/ocrbridge-core run ruff check src tests"
@@ -155,9 +214,17 @@ run = "uv --directory packages/ocrbridge-core run pytest"
 description = "Run ocrbridge-easyocr tests"
 run = "uv --directory packages/ocrbridge-easyocr run pytest"
 
+[tasks."test:easyocr:fast"]
+description = "Run ocrbridge-easyocr tests without real model integration or slow tests"
+run = "uv --directory packages/ocrbridge-easyocr run pytest -m 'not integration and not slow'"
+
 [tasks."test:tesseract"]
 description = "Run ocrbridge-tesseract tests"
 run = "uv --directory packages/ocrbridge-tesseract run pytest"
+
+[tasks."test:tesseract:fast"]
+description = "Run ocrbridge-tesseract tests without real Tesseract integration or slow tests"
+run = "uv --directory packages/ocrbridge-tesseract run pytest -m 'not integration and not slow'"
 
 [tasks."test:ocrmac"]
 description = "Run ocrbridge-ocrmac tests"
@@ -167,6 +234,14 @@ run = "uv --directory packages/ocrbridge-ocrmac run pytest"
 description = "Run ocr-service tests"
 run = "uv --directory apps/ocr-service run pytest"
 
+[tasks."test:service:fast"]
+description = "Run ocr-service tests without real EasyOCR or ocrmac E2E tests"
+run = "uv --directory apps/ocr-service run pytest tests/unit tests/integration -m 'not tesseract and not easyocr and not ocrmac' --ignore=tests/integration/test_lifespan.py --ignore=tests/unit/api/test_dynamic_routes.py --ignore=tests/unit/api/test_error_handling.py"
+
+[tasks."test:fast"]
+description = "Run deterministic tests that avoid real OCR engine downloads and macOS-only E2E"
+depends = ["test:core", "test:tesseract:fast", "test:easyocr:fast", "test:service:fast"]
+
 [tasks.test]
 description = "Run all workspace tests"
 depends = ["test:core", "test:tesseract", "test:easyocr", "test:ocrmac", "test:service"]
@@ -175,6 +250,14 @@ depends = ["test:core", "test:tesseract", "test:easyocr", "test:ocrmac", "test:s
 description = "Run lint, formatting checks, type checks, and tests"
 depends = ["lint", "format-check", "typecheck", "test"]
 
+[tasks."check:fast"]
+description = "Run lint, formatting checks, type checks, and deterministic fast tests"
+depends = ["lint", "format-check", "typecheck", "test:fast"]
+
+[tasks."check:full"]
+description = "Run external prerequisite checks before the full local gate"
+depends = ["doctor", "check"]
+
 [tasks."dev:service"]
 description = "Run ocr-service development server"
 run = "uv --directory apps/ocr-service run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000"
@@ -182,6 +265,26 @@ run = "uv --directory apps/ocr-service run uvicorn src.main:app --reload --host 
 [tasks."docker:service:lite"]
 description = "Build the lite ocr-service Docker image"
 run = "docker build --target lite -f apps/ocr-service/Dockerfile -t ocr-service:lite ."
+
+[tasks."docker:doctor"]
+description = "Check that the Docker-compatible daemon is reachable"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! command -v docker >/dev/null 2>&1; then
+  printf 'docker CLI not found. Install Docker Desktop, Colima, or a Podman-compatible Docker CLI.\n' >&2
+  exit 1
+fi
+
+if ! docker info >/dev/null 2>&1; then
+  printf 'docker daemon is not reachable. Start Docker Desktop, Colima, or Podman, then retry.\n' >&2
+  docker context ls >&2 || true
+  exit 1
+fi
+
+docker version
+'''
 
 [tasks."docker:service:full"]
 description = "Build the full ocr-service Docker image"

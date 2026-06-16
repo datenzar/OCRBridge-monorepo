@@ -38,6 +38,9 @@ This service uses a **modular plugin architecture** powered by the [datenzar OCR
 ### Prerequisites
 
 - mise
+- Tesseract binary for the Tesseract engine (`brew install tesseract` or `apt-get install tesseract-ocr`)
+- Poppler `pdfinfo`/`pdftoppm` for PDF uploads (`brew install poppler` or `apt-get install poppler-utils`)
+- Docker, Colima, or Podman-compatible Docker CLI for container tasks
 
 ### Base Installation
 
@@ -60,9 +63,9 @@ Choose which engines to install:
 ```bash
 # Option 1: Install Tesseract engine
 uv sync --package ocr-service --group dev --extra tesseract
-# System requirement: tesseract binary must be installed
-# Ubuntu/Debian: sudo apt-get install tesseract-ocr
-# macOS: brew install tesseract
+# System requirements: tesseract and poppler binaries must be installed
+# Ubuntu/Debian: sudo apt-get install tesseract-ocr poppler-utils
+# macOS: brew install tesseract poppler
 
 # Option 2: Install EasyOCR engine (includes PyTorch, ~2GB)
 uv sync --package ocr-service --group dev --extra easyocr
@@ -79,6 +82,14 @@ go install github.com/gardar/ocrchestra/cmd/pdfocr@latest
 ```
 
 `pdfocr` is used when `output_format=pdf` and the uploaded file is a PDF. For image uploads, PDF output still uses pytesseract.
+
+Before running the full local gate, check host prerequisites:
+
+```bash
+mise run doctor
+```
+
+EasyOCR downloads models into `~/.EasyOCR` by default. In Nix development shells, `EASYOCR_MODULE_PATH` points at the repo-local `.cache/easyocr` directory so interrupted downloads do not corrupt the shared home cache.
 
 ### Engine Comparison
 
@@ -387,6 +398,8 @@ nix develop .#macos  # Darwin only
 
 `ocr-service-full` and the full shell are unavailable on `x86_64-darwin` because EasyOCR/Torch dependencies are not available there.
 
+On Darwin, these shells set `TMPDIR` to a writable repo-local `.tmp` directory. This avoids a macOS Nix issue where Tesseract can fail to read temporary images that pytesseract writes under `/tmp` while processing PDFs.
+
 NixOS module example:
 
 ```nix
@@ -456,6 +469,9 @@ Configure API keys with `apiKeysFile`; inline `apiKeys` is rejected to avoid sto
 ### Docker Deployment
 
 ```bash
+# Verify Docker-compatible daemon access first
+mise run docker:doctor
+
 # Build the full runtime image
 docker build --target full -f apps/ocr-service/Dockerfile -t ocr-service:full -t ocr-service:latest .
 
@@ -494,6 +510,12 @@ uname -s  # Should return "Darwin"
 
 # For searchable PDF output from PDF uploads: Ensure pdfocr is installed
 which pdfocr
+
+# For PDF uploads: Ensure Poppler is installed
+which pdfinfo
+
+# For full EasyOCR tests: Check model cache location
+python -c "import os; print(os.environ.get('EASYOCR_MODULE_PATH', os.path.expanduser('~/.EasyOCR')))"
 ```
 
 ### Rate Limiting

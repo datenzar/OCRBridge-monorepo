@@ -11,6 +11,7 @@ let
     tesseract
     poppler-utils
     file
+    pythonEnvs.pdfocrPackage
     git
     curl
     nixpkgs-fmt
@@ -39,6 +40,18 @@ let
           fi
         fi
         export REPO_ROOT
+
+        OCRBRIDGE_STATE_ROOT="$REPO_ROOT"
+        if [ ! -w "$OCRBRIDGE_STATE_ROOT" ]; then
+          OCRBRIDGE_STATE_ROOT="$PWD/.ocrbridge-dev"
+        fi
+        mkdir -p "$OCRBRIDGE_STATE_ROOT/.cache/easyocr" "$OCRBRIDGE_STATE_ROOT/.tmp"
+        export OCRBRIDGE_STATE_ROOT
+        export EASYOCR_MODULE_PATH="$OCRBRIDGE_STATE_ROOT/.cache/easyocr"
+        ${lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
+          export TMPDIR="$OCRBRIDGE_STATE_ROOT/.tmp"
+        ''}
+
         export PATH="${env}/bin:$PATH"
         echo "OCRBridge Nix shell: ${name}"
       '';

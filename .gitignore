@@ -40,6 +40,9 @@ mise.local.toml
 *.pid
 *.tmp
 *.bak
+.cache/
+.tmp/
+.ocrbridge-dev/
 apps/ocr-service/data/
 apps/ocr-service/samples.local/
 
