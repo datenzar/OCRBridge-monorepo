@@ -9,7 +9,7 @@ A high-performance RESTful API service for document OCR processing with modular 
 - **HOCR Output**: Industry-standard HTML-based OCR with bounding boxes and text hierarchy
 - **Multiple OCR Engines**: Tesseract, EasyOCR, and ocrmac (macOS only)
 - **Dynamic Engine Discovery**: Automatically detects installed engine packages
-- **Engine-agnostic API**: Unified endpoint works with any installed engine
+- **Engine-agnostic API**: Engine-scoped endpoints work with any installed engine
 - **No Authentication**: Public API for easy integration
 
 ## Architecture
@@ -119,42 +119,38 @@ curl http://localhost:8000/health
 curl http://localhost:8000/v2/ocr/engines
 
 # Check engine parameter schema
-curl http://localhost:8000/v2/ocr/engines/tesseract/schema
+curl http://localhost:8000/v2/ocr/engines/tesseract
 ```
 
 ## API Usage
 
 ### Process a Document
 
-The unified `/v2/ocr/process` endpoint works with any installed engine:
+Each installed engine has a scoped `/v2/ocr/{engine}/process` endpoint:
 
 ```bash
 # Process with Tesseract
-curl -X POST http://localhost:8000/v2/ocr/process \
-  -F "file=@document.pdf" \
-  -F "engine=tesseract"
+curl -X POST http://localhost:8000/v2/ocr/tesseract/process \
+  -F "file=@document.pdf"
 
 # Process with custom parameters (Individual form fields)
-curl -X POST http://localhost:8000/v2/ocr/process \
+curl -X POST http://localhost:8000/v2/ocr/tesseract/process \
   -F "file=@document.pdf" \
-  -F "engine=tesseract" \
   -F "lang=eng+fra" \
   -F "psm=3" \
   -F "dpi=300"
 
 # Process with EasyOCR (if installed)
 # List parameters can be passed by repeating the field
-curl -X POST http://localhost:8000/v2/ocr/process \
+curl -X POST http://localhost:8000/v2/ocr/easyocr/process \
   -F "file=@document.pdf" \
-  -F "engine=easyocr" \
   -F "languages=en" \
   -F "languages=ch_sim" \
   -F "text_threshold=0.7"
 
 # Process with ocrmac (macOS only, if installed)
-curl -X POST http://localhost:8000/v2/ocr/process \
+curl -X POST http://localhost:8000/v2/ocr/ocrmac/process \
   -F "file=@document.pdf" \
-  -F "engine=ocrmac" \
   -F "languages=en-US" \
   -F "recognition_level=accurate"
 ```
@@ -177,31 +173,40 @@ curl http://localhost:8000/v2/ocr/engines
 
 **Response**:
 ```json
-{
-  "engines": ["tesseract", "easyocr"],
-  "count": 2,
-  "details": [
-    {
-      "name": "tesseract",
-      "class": "TesseractEngine",
-      "supported_formats": [".jpg", ".jpeg", ".png", ".tiff", ".tif", ".pdf"],
-      "has_param_model": true
-    }
-  ]
-}
+[
+  {
+    "name": "tesseract",
+    "class": "TesseractEngine",
+    "supported_formats": [".jpg", ".jpeg", ".png", ".tiff", ".tif", ".pdf"],
+    "has_param_model": true,
+    "params_schema": {"title": "TesseractParams", "type": "object"}
+  },
+  {
+    "name": "easyocr",
+    "class": "EasyOCREngine",
+    "supported_formats": [".jpg", ".jpeg", ".png", ".tiff", ".tif", ".pdf"],
+    "has_param_model": true,
+    "params_schema": {"title": "EasyOCRParams", "type": "object"}
+  }
+]
 ```
 
-### Get Engine Parameter Schema
+### Get Engine Details and Parameter Schema
 
 ```bash
-curl http://localhost:8000/v2/ocr/engines/tesseract/schema
+curl http://localhost:8000/v2/ocr/engines/tesseract
 ```
 
 **Response**:
 ```json
 {
-  "engine": "tesseract",
-  "schema": {
+  "name": "tesseract",
+  "class": "TesseractEngine",
+  "supported_formats": [".jpg", ".jpeg", ".png", ".tiff", ".tif", ".pdf"],
+  "has_param_model": true,
+  "params_schema": {
+    "title": "TesseractParams",
+    "type": "object",
     "properties": {
       "lang": {
         "type": "string",
@@ -348,7 +353,7 @@ ocr-service/
 │   ├── api/
 │   │   └── routes/
 │   │       └── v2/
-│   │           └── dynamic_routes.py # V2 unified OCR endpoints
+│   │           └── dynamic_routes.py # V2 dynamic OCR endpoints
 │   ├── services/
 │   │   └── ocr/
 │   │       └── registry_v2.py      # Entry point discovery registry
