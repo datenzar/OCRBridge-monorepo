@@ -4,7 +4,11 @@ let
   cfg = config.ocrbridge.ocr-service;
   inherit (lib) mkEnableOption mkIf mkOption types;
 
-  programName = cfg.package.meta.mainProgram or "ocr-service-${cfg.flavor}";
+  executable =
+    if cfg.executableName == null then
+      lib.getExe cfg.package
+    else
+      "${cfg.package}/bin/${cfg.executableName}";
 
   boolToString = value: if value then "true" else "false";
   intToString = value: builtins.toString value;
@@ -32,7 +36,6 @@ let
     CIRCUIT_BREAKER_TIMEOUT_SECONDS = intToString cfg.circuitBreakerTimeoutSeconds;
     CIRCUIT_BREAKER_SUCCESS_THRESHOLD = intToString cfg.circuitBreakerSuccessThreshold;
     API_KEY_ENABLED = boolToString cfg.apiKeyEnabled;
-    API_KEYS = commaList cfg.apiKeys;
     API_KEY_HEADER_NAME = cfg.apiKeyHeaderName;
     CORS_ENABLED = boolToString cfg.corsEnabled;
     CORS_ORIGINS = commaList cfg.corsOrigins;
@@ -57,6 +60,12 @@ in
     package = mkOption {
       type = types.package;
       description = "Package providing the OCRBridge OCR service executable.";
+    };
+
+    executableName = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "Executable name inside the package bin directory. Defaults to the package main program.";
     };
 
     host = mkOption {
@@ -194,7 +203,13 @@ in
     apiKeys = mkOption {
       type = types.listOf types.str;
       default = [ ];
-      description = "Valid API keys.";
+      description = "Deprecated. Do not use for secrets; use apiKeysFile instead.";
+    };
+
+    apiKeysFile = mkOption {
+      type = types.nullOr types.path;
+      default = null;
+      description = "Environment file containing API_KEYS for API key authentication.";
     };
 
     apiKeyHeaderName = mkOption {
@@ -258,6 +273,10 @@ in
         assertion = cfg.syncMaxFileSizeMb <= cfg.maxUploadSizeMb;
         message = "ocrbridge.ocr-service.syncMaxFileSizeMb cannot exceed maxUploadSizeMb.";
       }
+      {
+        assertion = cfg.apiKeys == [ ];
+        message = "ocrbridge.ocr-service.apiKeys would expose secrets in the Nix store; use apiKeysFile instead.";
+      }
     ];
 
     users.groups.${cfg.group} = { };
@@ -280,7 +299,8 @@ in
       inherit environment;
 
       serviceConfig = {
-        ExecStart = "${cfg.package}/bin/${programName}";
+        ExecStart = executable;
+        EnvironmentFile = lib.mkIf (cfg.apiKeysFile != null) cfg.apiKeysFile;
         User = cfg.user;
         Group = cfg.group;
         Restart = "on-failure";

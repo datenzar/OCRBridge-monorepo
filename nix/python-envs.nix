@@ -85,6 +85,7 @@ let
           --workers "$API_WORKERS" \
           "$@"
       '';
+      meta.mainProgram = name;
     };
 in
 {
