@@ -1487,7 +1487,7 @@ dev = [
 
 [[package]]
 name = "ocrbridge-ocrmac"
-version = "2.1.0"
+version = "1.0.0"
 source = { editable = "packages/ocrbridge-ocrmac" }
 dependencies = [
     { name = "ocrbridge-core" },
