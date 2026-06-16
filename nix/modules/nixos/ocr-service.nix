@@ -27,21 +27,21 @@ let
     DEBUG = boolToString cfg.debug;
     RELOAD = boolToString cfg.reload;
     STRICT_ENGINE_LOADING = boolToString cfg.strictEngineLoading;
-    CIRCUIT_BREAKER_ENABLED = boolToString cfg.circuitBreaker.enabled;
-    CIRCUIT_BREAKER_THRESHOLD = intToString cfg.circuitBreaker.threshold;
-    CIRCUIT_BREAKER_TIMEOUT_SECONDS = intToString cfg.circuitBreaker.timeoutSeconds;
-    CIRCUIT_BREAKER_SUCCESS_THRESHOLD = intToString cfg.circuitBreaker.successThreshold;
-    API_KEY_ENABLED = boolToString cfg.apiKey.enabled;
-    API_KEYS = commaList cfg.apiKey.keys;
-    API_KEY_HEADER_NAME = cfg.apiKey.headerName;
-    CORS_ENABLED = boolToString cfg.cors.enabled;
-    CORS_ORIGINS = commaList cfg.cors.origins;
-    CORS_ALLOW_CREDENTIALS = boolToString cfg.cors.allowCredentials;
-    RATE_LIMIT_ENABLED = boolToString cfg.rateLimit.enabled;
-    RATE_LIMIT_STORAGE_URI = cfg.rateLimit.storageUri;
-    RATE_LIMIT_DEFAULT = cfg.rateLimit.default;
-    RATE_LIMIT_OCR_PROCESS = cfg.rateLimit.ocrProcess;
-    RATE_LIMIT_OCR_INFO = cfg.rateLimit.ocrInfo;
+    CIRCUIT_BREAKER_ENABLED = boolToString cfg.circuitBreakerEnabled;
+    CIRCUIT_BREAKER_THRESHOLD = intToString cfg.circuitBreakerThreshold;
+    CIRCUIT_BREAKER_TIMEOUT_SECONDS = intToString cfg.circuitBreakerTimeoutSeconds;
+    CIRCUIT_BREAKER_SUCCESS_THRESHOLD = intToString cfg.circuitBreakerSuccessThreshold;
+    API_KEY_ENABLED = boolToString cfg.apiKeyEnabled;
+    API_KEYS = commaList cfg.apiKeys;
+    API_KEY_HEADER_NAME = cfg.apiKeyHeaderName;
+    CORS_ENABLED = boolToString cfg.corsEnabled;
+    CORS_ORIGINS = commaList cfg.corsOrigins;
+    CORS_ALLOW_CREDENTIALS = boolToString cfg.corsAllowCredentials;
+    RATE_LIMIT_ENABLED = boolToString cfg.rateLimitEnabled;
+    RATE_LIMIT_STORAGE_URI = cfg.rateLimitStorageUri;
+    RATE_LIMIT_DEFAULT = cfg.rateLimitDefault;
+    RATE_LIMIT_OCR_PROCESS = cfg.rateLimitOcrProcess;
+    RATE_LIMIT_OCR_INFO = cfg.rateLimitOcrInfo;
   };
 in
 {
@@ -75,6 +75,18 @@ in
       type = types.ints.positive;
       default = 4;
       description = "Number of API worker processes.";
+    };
+
+    user = mkOption {
+      type = types.str;
+      default = "ocr-service";
+      description = "User account for running the OCR service.";
+    };
+
+    group = mkOption {
+      type = types.str;
+      default = "ocr-service";
+      description = "Group account for running the OCR service.";
     };
 
     uploadDir = mkOption {
@@ -149,102 +161,94 @@ in
       description = "Fail startup if an OCR engine fails to load.";
     };
 
-    circuitBreaker = {
-      enabled = mkOption {
-        type = types.bool;
-        default = true;
-        description = "Enable circuit breakers for failing OCR engines.";
-      };
-
-      threshold = mkOption {
-        type = types.ints.positive;
-        default = 5;
-        description = "Consecutive failures before opening a circuit.";
-      };
-
-      timeoutSeconds = mkOption {
-        type = types.ints.positive;
-        default = 300;
-        description = "Seconds before attempting to close an open circuit.";
-      };
-
-      successThreshold = mkOption {
-        type = types.ints.positive;
-        default = 3;
-        description = "Consecutive successes required to reset failure count.";
-      };
+    circuitBreakerEnabled = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Enable circuit breakers for failing OCR engines.";
     };
 
-    apiKey = {
-      enabled = mkOption {
-        type = types.bool;
-        default = false;
-        description = "Enable API key authentication.";
-      };
-
-      keys = mkOption {
-        type = types.listOf types.str;
-        default = [ ];
-        description = "Valid API keys.";
-      };
-
-      headerName = mkOption {
-        type = types.str;
-        default = "X-API-Key";
-        description = "HTTP header name for API key authentication.";
-      };
+    circuitBreakerThreshold = mkOption {
+      type = types.ints.positive;
+      default = 5;
+      description = "Consecutive failures before opening a circuit.";
     };
 
-    cors = {
-      enabled = mkOption {
-        type = types.bool;
-        default = false;
-        description = "Enable CORS middleware.";
-      };
-
-      origins = mkOption {
-        type = types.listOf types.str;
-        default = [ ];
-        description = "Allowed CORS origins.";
-      };
-
-      allowCredentials = mkOption {
-        type = types.bool;
-        default = false;
-        description = "Allow credentials in CORS requests.";
-      };
+    circuitBreakerTimeoutSeconds = mkOption {
+      type = types.ints.positive;
+      default = 300;
+      description = "Seconds before attempting to close an open circuit.";
     };
 
-    rateLimit = {
-      enabled = mkOption {
-        type = types.bool;
-        default = true;
-        description = "Enable API rate limiting.";
-      };
+    circuitBreakerSuccessThreshold = mkOption {
+      type = types.ints.positive;
+      default = 3;
+      description = "Consecutive successes required to reset failure count.";
+    };
 
-      storageUri = mkOption {
-        type = types.str;
-        default = "memory://";
-        description = "Storage backend URI for rate limiting.";
-      };
+    apiKeyEnabled = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Enable API key authentication.";
+    };
 
-      default = mkOption {
-        type = types.str;
-        default = "100/hour";
-        description = "Default rate limit.";
-      };
+    apiKeys = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = "Valid API keys.";
+    };
 
-      ocrProcess = mkOption {
-        type = types.str;
-        default = "10/minute";
-        description = "Rate limit for OCR processing endpoints.";
-      };
+    apiKeyHeaderName = mkOption {
+      type = types.str;
+      default = "X-API-Key";
+      description = "HTTP header name for API key authentication.";
+    };
 
-      ocrInfo = mkOption {
-        type = types.str;
-        default = "100/minute";
-        description = "Rate limit for OCR info endpoints.";
-      };
+    corsEnabled = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Enable CORS middleware.";
+    };
+
+    corsOrigins = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = "Allowed CORS origins.";
+    };
+
+    corsAllowCredentials = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Allow credentials in CORS requests.";
+    };
+
+    rateLimitEnabled = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Enable API rate limiting.";
+    };
+
+    rateLimitStorageUri = mkOption {
+      type = types.str;
+      default = "memory://";
+      description = "Storage backend URI for rate limiting.";
+    };
+
+    rateLimitDefault = mkOption {
+      type = types.str;
+      default = "100/hour";
+      description = "Default rate limit.";
+    };
+
+    rateLimitOcrProcess = mkOption {
+      type = types.str;
+      default = "10/minute";
+      description = "Rate limit for OCR processing endpoints.";
+    };
+
+    rateLimitOcrInfo = mkOption {
+      type = types.str;
+      default = "100/minute";
+      description = "Rate limit for OCR info endpoints.";
     };
   };
 
@@ -256,16 +260,16 @@ in
       }
     ];
 
-    users.groups.ocr-service = { };
-    users.users.ocr-service = {
+    users.groups.${cfg.group} = { };
+    users.users.${cfg.user} = {
       isSystemUser = true;
-      group = "ocr-service";
+      group = cfg.group;
       home = "/var/lib/ocr-service";
     };
 
     systemd.tmpfiles.rules = [
-      "d ${pathToString cfg.uploadDir} 0750 ocr-service ocr-service -"
-      "d ${pathToString cfg.resultsDir} 0750 ocr-service ocr-service -"
+      "d ${pathToString cfg.uploadDir} 0750 ${cfg.user} ${cfg.group} -"
+      "d ${pathToString cfg.resultsDir} 0750 ${cfg.user} ${cfg.group} -"
     ];
 
     systemd.services.ocr-service = {
@@ -277,8 +281,8 @@ in
 
       serviceConfig = {
         ExecStart = "${cfg.package}/bin/${programName}";
-        User = "ocr-service";
-        Group = "ocr-service";
+        User = cfg.user;
+        Group = cfg.group;
         Restart = "on-failure";
         RestartSec = "5s";
         WorkingDirectory = "/var/lib/ocr-service";
