@@ -7,7 +7,7 @@
 
 **Key Features:**
 *   **Modular Architecture:** Engines are separate Python packages (`ocrbridge-tesseract`, `ocrbridge-easyocr`, `ocrbridge-ocrmac`) that register via entry points.
-*   **Unified API:** A single `/v2/ocr/process` endpoint works with any installed engine.
+*   **Engine-scoped API:** `/v2/ocr/{engine}/process` endpoints work with any installed engine.
 *   **Format Support:** Handles JPEG, PNG, PDF, and TIFF.
 *   **Output:** Standard HOCR (HTML-based OCR) with bounding boxes and text hierarchy.
 *   **Observability:** JSON logging (structlog) and Prometheus metrics.

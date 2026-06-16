@@ -335,9 +335,8 @@ Integration tests use FastAPI's TestClient and mock engines:
 def test_process_document_success_tesseract(client, sample_jpeg_bytes):
     """Test successful document processing with tesseract."""
     files = {"file": ("test.jpg", io.BytesIO(sample_jpeg_bytes), "image/jpeg")}
-    data = {"engine": "tesseract"}
 
-    response = client.post("/v2/ocr/process", files=files, data=data)
+    response = client.post("/v2/ocr/tesseract/process", files=files)
 
     assert response.status_code == 200
     result = response.json()
