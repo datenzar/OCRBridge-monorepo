@@ -1411,7 +1411,7 @@ dev = [
 
 [[package]]
 name = "ocrbridge-easyocr"
-version = "3.1.1"
+version = "1.0.0"
 source = { editable = "packages/ocrbridge-easyocr" }
 dependencies = [
     { name = "easyocr" },
