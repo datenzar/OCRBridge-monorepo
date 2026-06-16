@@ -7,6 +7,7 @@
 
 let
   python = if pkgs ? python314 then pkgs.python314 else pkgs.python313;
+  fullSupported = pkgs.stdenv.hostPlatform.system != "x86_64-darwin";
 
   workspace = uv2nix.lib.workspace.loadWorkspace {
     workspaceRoot = ../.;
@@ -87,14 +88,14 @@ let
     };
 in
 {
-  inherit python pythonSet liteEnv fullEnv macosEnv pdfocrPackage;
+  inherit python pythonSet liteEnv fullEnv macosEnv pdfocrPackage fullSupported;
 
   packages = {
     ocr-service-lite = makeService {
       name = "ocr-service-lite";
       env = liteEnv;
     };
-
+  } // lib.optionalAttrs fullSupported {
     ocr-service-full = makeService {
       name = "ocr-service-full";
       env = fullEnv;

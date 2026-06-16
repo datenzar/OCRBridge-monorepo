@@ -54,7 +54,7 @@ in
     name = "ocrbridge-lite";
     env = pythonEnvs.liteEnv;
   };
-
+} // lib.optionalAttrs pythonEnvs.fullSupported {
   full = shellFor {
     name = "ocrbridge-full";
     env = pythonEnvs.fullEnv;

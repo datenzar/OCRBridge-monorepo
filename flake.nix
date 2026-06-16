@@ -32,6 +32,7 @@
           apps = {
             default = flake-utils.lib.mkApp { drv = pythonEnvs.packages.ocr-service-lite; };
             ocr-service-lite = flake-utils.lib.mkApp { drv = pythonEnvs.packages.ocr-service-lite; };
+          } // pkgs.lib.optionalAttrs pythonEnvs.fullSupported {
             ocr-service-full = flake-utils.lib.mkApp { drv = pythonEnvs.packages.ocr-service-full; };
           } // pkgs.lib.optionalAttrs isDarwin {
             ocr-service-macos = flake-utils.lib.mkApp { drv = pythonEnvs.packages.ocr-service-macos; };
