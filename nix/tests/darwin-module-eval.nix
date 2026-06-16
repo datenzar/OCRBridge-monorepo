@@ -46,6 +46,17 @@ let
     package = self.packages.${system}.ocr-service-macos;
   };
 
+  fullPackageAvailable = self.packages.${system} ? ocr-service-full;
+  expectedFullPackageAvailable = system != "x86_64-darwin";
+  fullPackageEval =
+    if fullPackageAvailable then
+      evalModule
+        {
+          enable = true;
+          flavor = "full";
+          package = self.packages.${system}.ocr-service-full;
+        } else null;
+
   assertionsPass = evaluatedConfig:
     assert builtins.all (assertion: assertion.assertion) evaluatedConfig.config.assertions;
     true;
@@ -78,8 +89,19 @@ let
   environment = serviceConfig.EnvironmentVariables;
   programArguments = builtins.concatStringsSep " " serviceConfig.ProgramArguments;
   macosProgramArguments = builtins.concatStringsSep " " macosPackageEval.config.launchd.daemons.ocr-service.serviceConfig.ProgramArguments;
+  fullProgramArguments =
+    if fullPackageAvailable then
+      builtins.concatStringsSep " " fullPackageEval.config.launchd.daemons.ocr-service.serviceConfig.ProgramArguments
+    else
+      "";
   customProgramArguments = builtins.concatStringsSep " " customPackageEval.config.launchd.daemons.ocr-service.serviceConfig.ProgramArguments;
   boolString = value: if value then "true" else "false";
+  fullPackageShellCheck =
+    if fullPackageAvailable then ''
+      [[ "${fullProgramArguments}" == *"/bin/ocr-service-full"* ]]
+    '' else ''
+      test -z "${fullProgramArguments}"
+    '';
 in
 pkgs.runCommand "ocr-service-darwin-module-eval" { } ''
   test "${serviceConfig.Label}" = "org.ocrbridge.ocr-service"
@@ -115,6 +137,8 @@ pkgs.runCommand "ocr-service-darwin-module-eval" { } ''
   test "${serviceConfig.StandardOutPath}" = "/var/log/ocr-service.log"
   test "${serviceConfig.StandardErrorPath}" = "/var/log/ocr-service.err.log"
   [[ "${macosProgramArguments}" == *"/bin/ocr-service-macos"* ]]
+  test "${boolString fullPackageAvailable}" = "${boolString expectedFullPackageAvailable}"
+  ${fullPackageShellCheck}
   [[ "${customProgramArguments}" == *"/bin/custom-ocr-service"* ]]
   test "${boolString unsafeApiKeysEval.success}" = "false"
   test "${boolString mismatchedFlavorEval.success}" = "false"
