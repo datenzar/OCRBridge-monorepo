@@ -1533,7 +1533,7 @@ provides-extras = ["build", "dev", "test"]
 
 [[package]]
 name = "ocrbridge-tesseract"
-version = "3.0.1"
+version = "1.0.0"
 source = { editable = "packages/ocrbridge-tesseract" }
 dependencies = [
     { name = "ocrbridge-core" },
