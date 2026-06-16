@@ -25,6 +25,33 @@ For the service with all optional engine extras:
 mise run install:service:all-engines
 ```
 
+## Workflow Choices
+
+Use `mise` for the default contributor workflow. `mise.toml` is the task source of truth for pinned tools, dependency installation, checks, local service runs, and Docker commands.
+
+```bash
+mise install
+mise run install:all
+mise run check
+```
+
+Use Nix flakes when you need reproducible development shells, package and app outputs, or the NixOS/nix-darwin service modules.
+
+```bash
+nix develop
+nix build .#ocr-service-lite
+nix run .#ocr-service-lite
+```
+
+Use Docker or Podman for containerized service deployment through the existing Dockerfile and Compose stack.
+
+```bash
+mise run docker:service:lite
+mise run compose:service:lite
+```
+
+The `ocrmac` engine is native macOS-only and is not included in Linux containers.
+
 ## Common Commands
 
 ```bash

@@ -361,6 +361,81 @@ ocr-service/
 
 ## Deployment
 
+### Nix Deployment
+
+Build and run service flake outputs from the repository root:
+
+```bash
+nix build .#ocr-service-lite
+nix build .#ocr-service-full  # supported systems only
+nix run .#ocr-service-lite
+```
+
+Enter reproducible development shells:
+
+```bash
+nix develop
+nix develop .#lite
+nix develop .#full   # supported systems only
+nix develop .#macos  # Darwin only
+```
+
+`ocr-service-full` and the full shell are unavailable on `x86_64-darwin` because EasyOCR/Torch dependencies are not available there.
+
+NixOS module example:
+
+```nix
+{
+  inputs.ocrbridge.url = "github:datenzar/OCRBridge-monorepo";
+
+  outputs = { nixpkgs, ocrbridge, ... }: {
+    nixosConfigurations.ocr-host = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+        ocrbridge.nixosModules.ocr-service
+        {
+          ocrbridge.ocr-service = {
+            enable = true;
+            package = ocrbridge.packages.x86_64-linux.ocr-service-lite;
+            flavor = "lite";
+            port = 8000;
+            apiKeysFile = "/run/secrets/ocrbridge-api-keys";
+          };
+        }
+      ];
+    };
+  };
+}
+```
+
+nix-darwin module example:
+
+```nix
+{
+  inputs.ocrbridge.url = "github:datenzar/OCRBridge-monorepo";
+
+  outputs = { nix-darwin, ocrbridge, ... }: {
+    darwinConfigurations.ocr-mac = nix-darwin.lib.darwinSystem {
+      system = "aarch64-darwin";
+      modules = [
+        ocrbridge.darwinModules.ocr-service
+        {
+          ocrbridge.ocr-service = {
+            enable = true;
+            package = ocrbridge.packages.aarch64-darwin.ocr-service-macos;
+            flavor = "macos";
+            port = 8000;
+            apiKeysFile = "/run/secrets/ocrbridge-api-keys";
+          };
+        }
+      ];
+    };
+  };
+}
+```
+
+Configure API keys with `apiKeysFile`; inline `apiKeys` is rejected to avoid storing secrets in the Nix store. If you provide a custom package whose executable name differs from the selected flavor, set `executableName` explicitly.
+
 ### Docker Deployment
 
 ```bash
