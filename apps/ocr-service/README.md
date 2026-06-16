@@ -520,7 +520,8 @@ Built with:
 
 - `GET /v2/ocr/engines`: Lists discovered engines with metadata.
   - Includes `name`, `class`, `supported_formats`, `has_param_model`, and `params_schema` (JSON Schema for engine params when available).
-- `GET /v2/ocr/{engine}/info`: Returns metadata for a specific engine, including `params_schema`.
+- `GET /v2/ocr/engines/{engine_name}`: Returns metadata for a specific engine, including `params_schema`.
+- `GET /v2/ocr/{engine}/info`: Engine-scoped equivalent for the same metadata.
 - `POST /v2/ocr/{engine}/process`:
   - `multipart/form-data` with `file` and engine-specific parameters as individual form fields.
   - Parameters are dynamically registered in the OpenAPI schema and validated against the engine's Pydantic model.
