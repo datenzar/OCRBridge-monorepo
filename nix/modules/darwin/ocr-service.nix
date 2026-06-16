@@ -212,9 +212,9 @@ in
     };
 
     apiKeysFile = mkOption {
-      type = types.nullOr types.path;
+      type = types.nullOr types.str;
       default = null;
-      description = "Environment file containing API_KEYS for API key authentication.";
+      description = "Runtime environment file containing API_KEYS for API key authentication. Use an absolute runtime path, not a Nix path literal.";
     };
 
     apiKeyHeaderName = mkOption {
@@ -283,6 +283,10 @@ in
         message = "ocrbridge.ocr-service.apiKeys would expose secrets in the Nix store; use apiKeysFile instead.";
       }
       {
+        assertion = cfg.apiKeysFile == null || !lib.hasPrefix builtins.storeDir cfg.apiKeysFile;
+        message = "ocrbridge.ocr-service.apiKeysFile must be a runtime path outside the Nix store.";
+      }
+      {
         assertion =
           cfg.executableName != null
           || packageMainProgram == null
@@ -291,6 +295,11 @@ in
         message = "ocrbridge.ocr-service.flavor must match the package main program unless executableName is set.";
       }
     ];
+
+    system.activationScripts.postActivation.text = ''
+      /bin/mkdir -p /var/lib/ocr-service ${lib.escapeShellArg (pathToString cfg.uploadDir)} ${lib.escapeShellArg (pathToString cfg.resultsDir)}
+      /bin/chmod 0750 /var/lib/ocr-service ${lib.escapeShellArg (pathToString cfg.uploadDir)} ${lib.escapeShellArg (pathToString cfg.resultsDir)}
+    '';
 
     launchd.daemons.ocr-service.serviceConfig = {
       Label = "org.ocrbridge.ocr-service";

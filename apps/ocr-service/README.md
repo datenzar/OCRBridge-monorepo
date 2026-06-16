@@ -498,7 +498,7 @@ which pdfocr
 
 ### Rate Limiting
 
-Default: 100 requests/minute per IP. Configure with `RATE_LIMIT_REQUESTS`.
+Defaults: `RATE_LIMIT_DEFAULT=100/hour`, `RATE_LIMIT_OCR_PROCESS=10/minute`, and `RATE_LIMIT_OCR_INFO=100/minute`. Use `RATE_LIMIT_STORAGE_URI=redis://host:port` for multi-worker production deployments.
 
 ## Documentation
 

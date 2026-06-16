@@ -57,6 +57,12 @@ let
     apiKeys = [ "unsafe-key" ];
   }));
 
+  pathLiteralApiKeysFileEval = builtins.tryEval (assertionsPass (evalModule {
+    enable = true;
+    package = self.packages.${system}.ocr-service-lite;
+    apiKeysFile = ./nixos-module-eval.nix;
+  }));
+
   mismatchedFlavorEval = builtins.tryEval (assertionsPass (evalModule {
     enable = true;
     flavor = "full";
@@ -117,6 +123,7 @@ pkgs.runCommand "ocr-service-nixos-module-eval" { } ''
   [[ "${fullExecStart}" == *"/bin/ocr-service-full" ]]
   [[ "${customExecStart}" == *"/bin/custom-ocr-service" ]]
   test "${boolString unsafeApiKeysEval.success}" = "false"
+  test "${boolString pathLiteralApiKeysFileEval.success}" = "false"
   test "${boolString mismatchedFlavorEval.success}" = "false"
   touch $out
 ''

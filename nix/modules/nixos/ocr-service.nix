@@ -209,9 +209,9 @@ in
     };
 
     apiKeysFile = mkOption {
-      type = types.nullOr types.path;
+      type = types.nullOr types.str;
       default = null;
-      description = "Environment file containing API_KEYS for API key authentication.";
+      description = "Runtime environment file containing API_KEYS for API key authentication. Use an absolute runtime path, not a Nix path literal.";
     };
 
     apiKeyHeaderName = mkOption {
@@ -278,6 +278,10 @@ in
       {
         assertion = cfg.apiKeys == [ ];
         message = "ocrbridge.ocr-service.apiKeys would expose secrets in the Nix store; use apiKeysFile instead.";
+      }
+      {
+        assertion = cfg.apiKeysFile == null || !lib.hasPrefix builtins.storeDir cfg.apiKeysFile;
+        message = "ocrbridge.ocr-service.apiKeysFile must be a runtime path outside the Nix store.";
       }
       {
         assertion =

@@ -46,7 +46,7 @@ let
   };
 
   macosEnv = envFor "ocr-service-macos-env" {
-    ocr-service = [ "ocrmac" ];
+    ocr-service = [ "tesseract" "ocrmac" ];
   };
 
   commonRuntimePackages = [

@@ -88,6 +88,13 @@
               PY
               mkdir -p $out
             '';
+
+            ocr-service-macos-import = pkgs.runCommand "ocr-service-macos-import" { } ''
+              export PATH="${pythonEnvs.macosEnv}/bin:${pkgs.tesseract}/bin:${pkgs.poppler-utils}/bin:${pkgs.file}/bin:${pythonEnvs.pdfocrPackage}/bin:$PATH"
+              export PYTHONPATH="${./apps/ocr-service}:''${PYTHONPATH:-}"
+              ${pythonEnvs.macosEnv}/bin/python -c "import src.main; print('macos import ok')"
+              mkdir -p $out
+            '';
           };
         }) // {
       nixosModules.ocr-service = import ./nix/modules/nixos/ocr-service.nix;

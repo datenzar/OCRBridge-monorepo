@@ -67,6 +67,12 @@ let
     apiKeys = [ "unsafe-key" ];
   }));
 
+  pathLiteralApiKeysFileEval = builtins.tryEval (assertionsPass (evalModule {
+    enable = true;
+    package = self.packages.${system}.ocr-service-lite;
+    apiKeysFile = ./darwin-module-eval.nix;
+  }));
+
   mismatchedFlavorEval = builtins.tryEval (assertionsPass (evalModule {
     enable = true;
     flavor = "macos";
@@ -86,6 +92,7 @@ let
 
   daemon = evaluated.config.launchd.daemons.ocr-service;
   serviceConfig = daemon.serviceConfig;
+  postActivation = evaluated.config.system.activationScripts.postActivation.text or "";
   environment = serviceConfig.EnvironmentVariables;
   programArguments = builtins.concatStringsSep " " serviceConfig.ProgramArguments;
   macosProgramArguments = builtins.concatStringsSep " " macosPackageEval.config.launchd.daemons.ocr-service.serviceConfig.ProgramArguments;
@@ -134,6 +141,9 @@ pkgs.runCommand "ocr-service-darwin-module-eval" { } ''
   test "${boolString serviceConfig.KeepAlive}" = "true"
   test "${boolString serviceConfig.RunAtLoad}" = "true"
   test "${serviceConfig.WorkingDirectory}" = "/var/lib/ocr-service"
+  [[ "${postActivation}" == *"/var/lib/ocr-service"* ]]
+  [[ "${postActivation}" == *"/var/lib/ocr-service/test-uploads"* ]]
+  [[ "${postActivation}" == *"/var/lib/ocr-service/test-results"* ]]
   test "${serviceConfig.StandardOutPath}" = "/var/log/ocr-service.log"
   test "${serviceConfig.StandardErrorPath}" = "/var/log/ocr-service.err.log"
   [[ "${macosProgramArguments}" == *"/bin/ocr-service-macos"* ]]
@@ -141,6 +151,7 @@ pkgs.runCommand "ocr-service-darwin-module-eval" { } ''
   ${fullPackageShellCheck}
   [[ "${customProgramArguments}" == *"/bin/custom-ocr-service"* ]]
   test "${boolString unsafeApiKeysEval.success}" = "false"
+  test "${boolString pathLiteralApiKeysFileEval.success}" = "false"
   test "${boolString mismatchedFlavorEval.success}" = "false"
   touch $out
 ''
