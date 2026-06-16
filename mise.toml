@@ -19,6 +19,11 @@ run = "uv sync --group dev"
 description = "Install root JavaScript development dependencies"
 run = "npm install"
 
+[tasks."install:hooks"]
+description = "Install local Git hooks"
+depends = ["install:js"]
+run = "uv run pre-commit install --hook-type pre-commit --hook-type commit-msg"
+
 [tasks."install:all"]
 description = "Install all workspace packages with development dependencies"
 run = "uv sync --all-packages --group dev --all-extras"

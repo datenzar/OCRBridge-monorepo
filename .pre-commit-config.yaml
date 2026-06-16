@@ -1,0 +1,15 @@
+repos:
+  - repo: local
+    hooks:
+      - id: actionlint
+        name: actionlint
+        entry: mise exec actionlint -- actionlint
+        language: system
+        files: ^\.github/workflows/.*\.ya?ml$
+        pass_filenames: false
+
+      - id: commitlint
+        name: commitlint
+        entry: npx commitlint --edit
+        language: system
+        stages: [commit-msg]
