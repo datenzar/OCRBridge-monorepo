@@ -43,8 +43,25 @@ let
 
   fullPackageEval = evalModule {
     enable = true;
+    flavor = "full";
     package = self.packages.${system}.ocr-service-full;
   };
+
+  assertionsPass = evaluatedConfig:
+    assert builtins.all (assertion: assertion.assertion) evaluatedConfig.config.assertions;
+    true;
+
+  unsafeApiKeysEval = builtins.tryEval (assertionsPass (evalModule {
+    enable = true;
+    package = self.packages.${system}.ocr-service-lite;
+    apiKeys = [ "unsafe-key" ];
+  }));
+
+  mismatchedFlavorEval = builtins.tryEval (assertionsPass (evalModule {
+    enable = true;
+    flavor = "full";
+    package = self.packages.${system}.ocr-service-lite;
+  }));
 
   customPackage = pkgs.writeShellApplication {
     name = "custom-ocr-service";
@@ -63,6 +80,7 @@ let
   tmpfilesRules = evaluated.config.systemd.tmpfiles.rules;
   fullExecStart = builtins.unsafeDiscardStringContext fullPackageEval.config.systemd.services.ocr-service.serviceConfig.ExecStart;
   customExecStart = builtins.unsafeDiscardStringContext customPackageEval.config.systemd.services.ocr-service.serviceConfig.ExecStart;
+  boolString = value: if value then "true" else "false";
 in
 pkgs.runCommand "ocr-service-nixos-module-eval" { } ''
   test -n "${serviceConfig.ExecStart}"
@@ -98,5 +116,7 @@ pkgs.runCommand "ocr-service-nixos-module-eval" { } ''
   [[ "${builtins.concatStringsSep "\n" tmpfilesRules}" == *"d /var/lib/ocr-service/test-results 0750 ocrbridge-test ocrbridge-test -"* ]]
   [[ "${fullExecStart}" == *"/bin/ocr-service-full" ]]
   [[ "${customExecStart}" == *"/bin/custom-ocr-service" ]]
+  test "${boolString unsafeApiKeysEval.success}" = "false"
+  test "${boolString mismatchedFlavorEval.success}" = "false"
   touch $out
 ''

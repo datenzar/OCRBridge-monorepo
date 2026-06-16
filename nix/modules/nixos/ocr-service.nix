@@ -9,6 +9,8 @@ let
       lib.getExe cfg.package
     else
       "${cfg.package}/bin/${cfg.executableName}";
+  packageMainProgram = cfg.package.meta.mainProgram or null;
+  expectedMainProgram = "ocr-service-${cfg.flavor}";
 
   boolToString = value: if value then "true" else "false";
   intToString = value: builtins.toString value;
@@ -276,6 +278,14 @@ in
       {
         assertion = cfg.apiKeys == [ ];
         message = "ocrbridge.ocr-service.apiKeys would expose secrets in the Nix store; use apiKeysFile instead.";
+      }
+      {
+        assertion =
+          cfg.executableName != null
+          || packageMainProgram == null
+          || !lib.hasPrefix "ocr-service-" packageMainProgram
+          || packageMainProgram == expectedMainProgram;
+        message = "ocrbridge.ocr-service.flavor must match the package main program unless executableName is set.";
       }
     ];
 
