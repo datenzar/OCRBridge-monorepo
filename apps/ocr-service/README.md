@@ -386,7 +386,11 @@ NixOS module example:
 
 ```nix
 {
-  inputs.ocrbridge.url = "github:datenzar/OCRBridge-monorepo";
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    ocrbridge.url = "github:datenzar/OCRBridge-monorepo";
+    ocrbridge.inputs.nixpkgs.follows = "nixpkgs";
+  };
 
   outputs = { nixpkgs, ocrbridge, ... }: {
     nixosConfigurations.ocr-host = nixpkgs.lib.nixosSystem {
@@ -399,6 +403,7 @@ NixOS module example:
             package = ocrbridge.packages.x86_64-linux.ocr-service-lite;
             flavor = "lite";
             port = 8000;
+            apiKeyEnabled = true;
             apiKeysFile = "/run/secrets/ocrbridge-api-keys";
           };
         }
@@ -412,7 +417,13 @@ nix-darwin module example:
 
 ```nix
 {
-  inputs.ocrbridge.url = "github:datenzar/OCRBridge-monorepo";
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nix-darwin.url = "github:nix-darwin/nix-darwin";
+    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
+    ocrbridge.url = "github:datenzar/OCRBridge-monorepo";
+    ocrbridge.inputs.nixpkgs.follows = "nixpkgs";
+  };
 
   outputs = { nix-darwin, ocrbridge, ... }: {
     darwinConfigurations.ocr-mac = nix-darwin.lib.darwinSystem {
@@ -425,6 +436,7 @@ nix-darwin module example:
             package = ocrbridge.packages.aarch64-darwin.ocr-service-macos;
             flavor = "macos";
             port = 8000;
+            apiKeyEnabled = true;
             apiKeysFile = "/run/secrets/ocrbridge-api-keys";
           };
         }
