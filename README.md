@@ -99,6 +99,17 @@ mise run compose:service:full
 
 ## Releases
 
-Package release tags are package-prefixed to avoid collisions in the monorepo, for example `ocrbridge-core-v3.1.1` and `ocrbridge-tesseract-v3.0.1`.
+Release tags are project-prefixed to avoid collisions in the monorepo, for example `ocrbridge-core-v3.1.1`, `ocrbridge-tesseract-v3.0.1`, and `ocr-service-v2.1.0`.
 
-Python Semantic Release configuration lives in each package `pyproject.toml` and uses monorepo path filters so a package only releases for changes under its own directory.
+Python Semantic Release configuration lives in each releasable project's `pyproject.toml`. The release workflow discovers uv workspace members that define `[tool.semantic_release]`, runs Semantic Release in noop mode to plan releases, and only runs release jobs for projects Semantic Release marks as releasable.
+
+Python packages publish distributions to PyPI. The `ocr-service` release publishes Docker images to GitHub Container Registry with flavor-specific tags:
+
+```text
+ghcr.io/<owner>/ocr-service:<version>-lite
+ghcr.io/<owner>/ocr-service:lite
+ghcr.io/<owner>/ocr-service:<version>-full
+ghcr.io/<owner>/ocr-service:full
+```
+
+The service images intentionally do not publish a `latest` tag because `lite` and `full` contain different engine sets.

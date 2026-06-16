@@ -4,38 +4,26 @@ on:
   push:
     branches: [main]
     paths:
+      - "apps/ocr-service/**"
       - "packages/**"
       - "pyproject.toml"
       - "uv.lock"
       - "mise.toml"
+      - ".dockerignore"
+      - ".github/scripts/plan-releases.py"
       - ".github/workflows/release.yml"
   workflow_dispatch:
 
 jobs:
-  release:
+  plan:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - package: ocrbridge-core
-            path: packages/ocrbridge-core
-            pypi-url: https://pypi.org/project/ocrbridge-core/
-          - package: ocrbridge-tesseract
-            path: packages/ocrbridge-tesseract
-            pypi-url: https://pypi.org/project/ocrbridge-tesseract/
-          - package: ocrbridge-easyocr
-            path: packages/ocrbridge-easyocr
-            pypi-url: https://pypi.org/project/ocrbridge-easyocr/
-          - package: ocrbridge-ocrmac
-            path: packages/ocrbridge-ocrmac
-            pypi-url: https://pypi.org/project/ocrbridge-ocrmac/
     permissions:
-      contents: write
-      id-token: write
-    environment:
-      name: pypi
-      url: ${{ matrix.pypi-url }}
+      contents: read
+    outputs:
+      pypi_matrix: ${{ steps.plan.outputs.pypi_matrix }}
+      has_pypi: ${{ steps.plan.outputs.has_pypi }}
+      service_matrix: ${{ steps.plan.outputs.service_matrix }}
+      has_service: ${{ steps.plan.outputs.has_service }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -46,7 +34,41 @@ jobs:
           cache: true
           install_args: python uv
       - name: Install release dependencies
-        run: uv sync --locked --package ${{ matrix.package }} --extra build
+        run: uv sync --locked --group dev
+      - name: Plan releases
+        id: plan
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python .github/scripts/plan-releases.py
+
+  release-packages:
+    needs: plan
+    if: needs.plan.outputs.has_pypi == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix: ${{ fromJson(needs.plan.outputs.pypi_matrix) }}
+    permissions:
+      contents: write
+      id-token: write
+    environment:
+      name: pypi
+      url: ${{ matrix.pypi-url }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: main
+      - name: Update local main
+        run: git pull --ff-only origin main
+      - uses: jdx/mise-action@v4
+        with:
+          install: true
+          cache: true
+          install_args: python uv
+      - name: Install release dependencies
+        run: uv sync --locked --group dev
       - name: Version and build
         id: release
         working-directory: ${{ matrix.path }}
@@ -60,3 +82,97 @@ jobs:
           packages-dir: dist
           print-hash: true
           verbose: true
+
+  release-service:
+    needs: [plan, release-packages]
+    if: always() && needs.plan.outputs.has_service == 'true' && !failure() && !cancelled()
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.plan.outputs.service_matrix) }}
+    permissions:
+      contents: write
+    outputs:
+      released: ${{ steps.release.outputs.released }}
+      version: ${{ steps.release.outputs.version }}
+      tag: ${{ steps.release.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: main
+      - name: Update local main
+        run: git pull --ff-only origin main
+      - uses: jdx/mise-action@v4
+        with:
+          install: true
+          cache: true
+          install_args: python uv
+      - name: Install release dependencies
+        run: uv sync --locked --group dev
+      - name: Version service
+        id: release
+        working-directory: ${{ matrix.path }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: uv run semantic-release -v --strict version
+
+  publish-service-images:
+    needs: release-service
+    if: needs.release-service.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - flavor: lite
+            target: lite
+          - flavor: full
+            target: full
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Free disk space
+        if: matrix.flavor == 'full'
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+          docker-images: false
+          swap-storage: true
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.release-service.outputs.tag }}
+      - name: Login to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/setup-buildx-action@v4
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/ocr-service
+          tags: |
+            type=raw,value=${{ needs.release-service.outputs.version }}-${{ matrix.flavor }}
+            type=raw,value=${{ matrix.flavor }}
+          labels: |
+            org.opencontainers.image.title=OCR Service (${{ matrix.flavor }})
+            org.opencontainers.image.version=${{ needs.release-service.outputs.version }}
+      - name: Build and publish ${{ matrix.flavor }} Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: apps/ocr-service/Dockerfile
+          target: ${{ matrix.target }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=ocr-service-${{ matrix.flavor }}
+          cache-to: type=gha,mode=max,scope=ocr-service-${{ matrix.flavor }}

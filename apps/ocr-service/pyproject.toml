@@ -96,3 +96,23 @@ ocrbridge-core = { workspace = true }
 ocrbridge-easyocr = { workspace = true }
 ocrbridge-tesseract = { workspace = true }
 ocrbridge-ocrmac = { workspace = true }
+
+[tool.semantic_release]
+commit_parser = "conventional-monorepo"
+tag_format = "ocr-service-v{version}"
+build_command = """
+    cd ../..
+    uv lock --upgrade-package "$PACKAGE_NAME"
+    git add uv.lock
+"""
+version_toml = ["pyproject.toml:project.version"]
+
+[tool.semantic_release.commit_parser_options]
+path_filters = [
+    "apps/ocr-service/**",
+    "packages/**",
+    "pyproject.toml",
+    "uv.lock",
+    ".dockerignore",
+]
+scope_prefix = "ocr-service"
