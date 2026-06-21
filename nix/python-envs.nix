@@ -69,12 +69,18 @@ let
     subPackages = [ "cmd/pdfocr" ];
   };
 
+  fileLibraryPath = lib.makeLibraryPath [ pkgs.file ];
+
   makeService = { name, env, extraRuntimePackages ? [ ] }:
     pkgs.writeShellApplication {
       inherit name;
       runtimeInputs = commonRuntimePackages ++ extraRuntimePackages;
       text = ''
         export PATH="${env}/bin:$PATH"
+      '' + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
+        export DYLD_LIBRARY_PATH="${fileLibraryPath}''${DYLD_LIBRARY_PATH:+:''${DYLD_LIBRARY_PATH}}"
+        export DYLD_FALLBACK_LIBRARY_PATH="${fileLibraryPath}''${DYLD_FALLBACK_LIBRARY_PATH:+:''${DYLD_FALLBACK_LIBRARY_PATH}}"
+      '' + ''
         export API_HOST="''${API_HOST:-0.0.0.0}"
         export API_PORT="''${API_PORT:-8000}"
         export API_WORKERS="''${API_WORKERS:-4}"
